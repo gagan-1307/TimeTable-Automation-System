@@ -1,10 +1,13 @@
+import dotenv from 'dotenv';
 import express from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs'; // Required for file system operations
 
+dotenv.config();
+
 const app = express();
-const PORT = 8080;
+const PORT = process.env.PORT || 8080;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -13,6 +16,15 @@ app.get('/', (req, res) => {
     res.send('Hello, World!');
 });
 
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-});
+
+import connectDB from './config/db.js';
+
+// Start server
+const startServer = async () => {
+    await connectDB();
+    app.listen(PORT, () => {
+        console.log(`Server is running on http://localhost:${PORT}`);
+    });
+};
+
+startServer();

@@ -1,5 +1,7 @@
 {
   "watch": ["src"],
   "ext": "js,json",
+  "ignore": [".env", "uploads"],
+  "delay": 500,
   "exec": "node src/server.js"
 }
