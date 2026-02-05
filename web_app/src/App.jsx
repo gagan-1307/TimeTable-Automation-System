@@ -1,10 +1,13 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import './App.css';
 import Footer from './components/common/Footer.jsx';
 import { useAuth } from './hooks/useAuth.js';
 import Dashboard from './pages/Dashboard.jsx';
 import TimetableEdit from './pages/TimetableEdit.jsx';
 import { TimetableProvider } from './context/TimetableContext.jsx';
+
+// Vite-style env var (same base URL used elsewhere)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
 export default function App() {
   const { isAuthenticated, adminId, login, logout } = useAuth();
@@ -94,6 +97,80 @@ export default function App() {
   const viewerSrc = useMemo(() => {
     return pdfObjectUrl || '';
   }, [pdfObjectUrl]);
+
+  // Automatically load the generated timetable PDF from the backend
+  useEffect(() => {
+    // Only try to load when on the viewer page
+    if (activePage !== 'viewer') return;
+
+    let cancelled = false;
+
+    const loadTimetablePdf = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/rooms/timetable/pdf`, {
+          method: 'GET',
+        });
+
+        if (!res.ok) {
+          // Quietly ignore 404 (no data yet), log other errors
+          if (res.status !== 404) {
+            const errText = await res.text();
+            console.error('Failed to auto-load timetable PDF:', errText);
+          }
+          return;
+        }
+
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        if (cancelled) {
+          window.URL.revokeObjectURL(url);
+          return;
+        }
+
+        setPdfFileName('Timetable (all rooms)');
+        setPdfObjectUrl((prev) => {
+          if (prev) window.URL.revokeObjectURL(prev);
+          return url;
+        });
+      } catch (err) {
+        console.error('Error auto-loading timetable PDF', err);
+      }
+    };
+
+    loadTimetablePdf();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activePage]);
+
+  const onDownloadAllTimetablesPdf = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/rooms/timetable/pdf`, {
+        method: 'GET',
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Backend error (${res.status}): ${errText}`);
+      }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'timetable_all_rooms.pdf';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Failed to download all timetables PDF', err);
+      alert(
+        `Failed to download all timetables PDF: ${err?.message || 'Unknown error'}`
+      );
+    }
+  };
 
   const onLogout = () => {
     logout();
@@ -205,19 +282,28 @@ export default function App() {
                     </label>
                   </div>
 
-                  {isAuthenticated ? (
-                    <label className="btn btnGhost">
-                      Choose PDF
-                      <input
-                        className="visuallyHidden"
-                        type="file"
-                        accept="application/pdf"
-                        onChange={onPickPdf}
-                      />
-                    </label>
-                  ) : (
-                    <div className="pdfHint">Login as admin to upload a PDF.</div>
-                  )}
+                  <div className="pdfHeaderButtons">
+                    {isAuthenticated ? (
+                      <label className="btn btnGhost">
+                        Choose PDF
+                        <input
+                          className="visuallyHidden"
+                          type="file"
+                          accept="application/pdf"
+                          onChange={onPickPdf}
+                        />
+                      </label>
+                    ) : (
+                      <div className="pdfHint">Login as admin to upload a PDF.</div>
+                    )}
+                    <button
+                      className="btn btnPrimary"
+                      type="button"
+                      onClick={onDownloadAllTimetablesPdf}
+                    >
+                      Download All Timetables (PDF)
+                    </button>
+                  </div>
                 </div>
               </div>
 

@@ -2,6 +2,35 @@ import React, { useMemo, useState } from 'react';
 import { parseTimetableExcel } from '../utils/excelTimetable.js';
 import { useTimetableContext } from '../context/TimetableContext.jsx';
 
+// Vite-style env var (define VITE_API_BASE_URL in .env if you want to override)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
+// Parse a cell like "Electronics (Mr. Patel)" -> { subject: "Electronics", teacher: "Mr. Patel" }
+// If teacher is not present, teacher will be null. Empty values become null.
+function parseCellText(raw) {
+  if (!raw) {
+    return { subject: null, teacher: null };
+  }
+
+  const text = String(raw).trim();
+  if (!text) {
+    return { subject: null, teacher: null };
+  }
+
+  const match = text.match(/^(.*?)(?:\((.*?)\))?$/);
+  if (!match) {
+    return { subject: text, teacher: null };
+  }
+
+  const subject = match[1] ? match[1].trim() : '';
+  const teacher = match[2] ? match[2].trim() : '';
+
+  return {
+    subject: subject || null,
+    teacher: teacher || null,
+  };
+}
+
 const TimetableEdit = () => {
   const { timetableByRoom, updateRoomTimetable } = useTimetableContext();
 
@@ -37,10 +66,65 @@ const TimetableEdit = () => {
     }
   };
 
-  const onSave = () => {
+  const onSave = async () => {
     if (!parsed?.room || !parsed?.rows?.length) return;
+
+    // First, update local context
     updateRoomTimetable(parsed.room, parsed);
-    alert(`Saved timetable for ${parsed.room}`);
+
+    // Prepare a version of rows where each cell is still a string;
+    // backend will run its own double-loop and parse "Subject (Teacher)".
+    const payload = {
+      roomId: parsed.room,
+      days: parsed.days,
+      rows: parsed.rows,
+    };
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/rooms/timetable/bulk`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Backend error (${res.status}): ${errText}`);
+      }
+
+      alert(`Saved and synced timetable for ${parsed.room}`);
+    } catch (err) {
+      console.error('Failed to sync timetable to backend', err);
+      alert(`Failed to sync timetable to backend: ${err?.message || 'Unknown error'}`);
+    }
+  };
+
+  const onDownloadPdf = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/rooms/timetable/pdf`, {
+        method: 'GET',
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Backend error (${res.status}): ${errText}`);
+      }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'timetable_all_rooms.pdf';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Failed to download timetable PDF', err);
+      alert(
+        `Failed to download timetable PDF: ${err?.message || 'Unknown error'}`
+      );
+    }
   };
 
   return (
@@ -98,9 +182,22 @@ const TimetableEdit = () => {
                 </div>
               </div>
 
-              <button className="btn btnPrimary" type="button" onClick={onSave}>
-                Save Timetable
-              </button>
+              <div className="previewActions">
+                <button
+                  className="btn btnGhost"
+                  type="button"
+                  onClick={onDownloadPdf}
+                >
+                  Download PDF
+                </button>
+                <button
+                  className="btn btnPrimary"
+                  type="button"
+                  onClick={onSave}
+                >
+                  Save Timetable
+                </button>
+              </div>
             </div>
 
             <div className="tableWrap">
