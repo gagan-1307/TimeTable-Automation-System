@@ -1,9 +1,36 @@
 /* App-specific UI bits (global layout is in index.css) */
 
+.appHeader {
+  background: linear-gradient(135deg, #1e3a8a, #1d4ed8 45%, #2563eb);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.appHeader::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(45deg, rgba(255,255,255,0.08) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+.appTitle {
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  font-size: 20px;
+  color: #316def;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 1;
+}
+
 .appHeaderRight {
   display: flex;
   align-items: center;
   gap: 10px;
+  position: relative;
+  z-index: 1;
 }
 
 .headerAuth {
@@ -31,46 +58,76 @@
   border: 1px solid #e5e7eb;
   background: #ffffff;
   color: #111827;
-  padding: 8px 12px;
+  padding: 9px 16px;
   border-radius: 10px;
   cursor: pointer;
   font-weight: 600;
+  transition: all 0.18s ease;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+  letter-spacing: 0.2px;
 }
 
 .btn:hover {
   background: #f9fafb;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
+}
+
+.btn:active {
+  transform: translateY(0);
 }
 
 .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  transform: none;
 }
 
 .btnPrimary {
   border-color: #2563eb;
-  background: #2563eb;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
   color: #ffffff;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
 .btnPrimary:hover {
-  background: #1d4ed8;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
 }
 
 .btnGhost {
   background: #eff6ff;
   border-color: #bfdbfe;
   color: #1d4ed8;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.12);
+}
+
+.btnGhost:hover {
+  background: #dbeafe;
+  border-color: #93c5fd;
 }
 
 .pdfCard {
   background: #ffffff;
   border: 1px solid #e5e7eb;
-  border-radius: 16px;
+  border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.1);
   display: grid;
   grid-template-rows: auto 1fr;
   min-height: calc(100vh - 160px);
+  position: relative;
+}
+
+.pdfCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #2563eb, #3b82f6, #60a5fa);
+  opacity: 0.8;
 }
 
 .pdfCardHeader {
@@ -78,17 +135,26 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 14px 16px;
+  padding: 18px 20px;
   border-bottom: 1px solid #e5e7eb;
-  background: #ffffff;
+  background: linear-gradient(180deg, #fafbfc, #ffffff);
+  position: relative;
+  z-index: 1;
 }
 
 .pdfHeaderControls {
   display: flex;
   align-items: flex-end;
-  gap: 12px;
+  gap: 14px;
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+
+.pdfHeaderButtons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .filterRow {
@@ -102,26 +168,40 @@
   display: grid;
   gap: 6px;
   text-align: left;
+  padding: 10px 12px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
 }
 
 .filterLabel {
-  font-weight: 700;
-  font-size: 12px;
-  color: #374151;
+  font-weight: 800;
+  font-size: 11px;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .select {
   border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 9px 10px;
+  border-radius: 10px;
+  padding: 8px 10px;
   background: #ffffff;
   min-width: 160px;
   outline: none;
+  font-weight: 600;
+  color: #0f172a;
+  transition: all 0.15s ease;
 }
 
 .select:focus {
   border-color: #93c5fd;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.select:hover {
+  border-color: #cbd5e1;
 }
 
 /* Dashboard + page shells */
@@ -146,6 +226,7 @@
 .dashboard {
   display: grid;
   gap: 16px;
+  padding: 8px 2px 2px;
 }
 
 .dashboardHeader {
@@ -154,12 +235,18 @@
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #eef2ff, #f8fafc 55%, #eff6ff);
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
 }
 
 .dashboardTitle {
   font-weight: 900;
-  font-size: 22px;
+  font-size: 24px;
   text-align: left;
+  color: #0f172a;
 }
 
 .dashboardSubtitle {
@@ -167,18 +254,20 @@
   font-size: 13px;
   text-align: left;
   margin-top: 4px;
+  max-width: 520px;
 }
 
 .dashboardHeaderActions {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .dashboardGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  gap: 16px;
 }
 
 @media (max-width: 900px) {
@@ -190,21 +279,43 @@
 .dashCard {
   background: #ffffff;
   border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  padding: 14px 16px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.dashCard::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-left: 4px solid #2563eb;
+  opacity: 0.08;
+  pointer-events: none;
+}
+
+.dashCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
 }
 
 .dashCardTitle {
   font-weight: 800;
   text-align: left;
   margin-bottom: 10px;
+  color: #0f172a;
 }
 
 .profileGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px 12px;
+  background: #f8fafc;
+  border: 1px dashed #e2e8f0;
+  border-radius: 14px;
+  padding: 12px;
 }
 
 @media (max-width: 700px) {
@@ -217,17 +328,25 @@
   text-align: left;
   display: grid;
   gap: 4px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #edf2f7;
+  box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.6);
 }
 
 .profileLabel {
   font-size: 12px;
   font-weight: 800;
-  color: #374151;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
 }
 
 .profileValue {
   font-size: 14px;
-  color: #111827;
+  color: #0f172a;
+  font-weight: 600;
 }
 
 .mono {
@@ -246,6 +365,20 @@
   text-align: left;
 }
 
+@media (max-width: 720px) {
+  .dashboardHeader {
+    padding: 14px;
+  }
+
+  .dashboardTitle {
+    font-size: 20px;
+  }
+
+  .dashCard {
+    padding: 14px;
+  }
+}
+
 /* TimetableEdit */
 
 .editHeader {
@@ -255,12 +388,18 @@
   gap: 12px;
   flex-wrap: wrap;
   margin-bottom: 12px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #ecfeff, #f8fafc 55%, #eef2ff);
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
 }
 
 .editTitle {
   font-weight: 900;
   font-size: 20px;
   text-align: left;
+  color: #0f172a;
 }
 
 .editSubtitle {
@@ -268,16 +407,28 @@
   font-size: 13px;
   text-align: left;
   margin-top: 4px;
+  max-width: 620px;
 }
 
 .editCard {
   background: #ffffff;
   border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  padding: 14px 16px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
   display: grid;
   gap: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.editCard::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-top: 3px solid #2563eb;
+  opacity: 0.08;
+  pointer-events: none;
 }
 
 .editFormRow {
@@ -286,6 +437,10 @@
   align-items: flex-end;
   flex-wrap: wrap;
   justify-content: space-between;
+}
+
+.editFormRow .field {
+  min-width: 240px;
 }
 
 .previewBlock {
@@ -304,6 +459,7 @@
 .previewTitle {
   font-weight: 900;
   text-align: left;
+  color: #0f172a;
 }
 
 .previewSubtitle {
@@ -317,53 +473,55 @@
   width: 100%;
   overflow: auto;
   border: 1px solid #e5e7eb;
-  border-radius: 14px;
+  border-radius: 16px;
+  box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.7);
 }
 
 .ttTable {
   width: 100%;
   border-collapse: collapse;
   background: #ffffff;
-  border: 2px solid #111827;
+  border: 1px solid #0f172a;
 }
 
 .ttTable th,
 .ttTable td {
-  border: 1px solid #111827;
-  padding: 10px 12px;
+  border: 1px solid #0f172a;
+  padding: 12px 10px;
   text-align: left;
   vertical-align: top;
-  font-size: 13px;
+  font-size: 12.5px;
 }
 
 .ttTable thead th {
   position: sticky;
   top: 0;
-  background: #1976d2;
+  background: linear-gradient(180deg, #2563eb, #1d4ed8);
   color: #ffffff;
   z-index: 1;
   font-weight: 900;
   text-align: center;
+  letter-spacing: 0.3px;
 }
 
 .ttDayHeader {
-  background: #004c99 !important;
+  background: #0f172a !important;
   color: #ffffff !important;
   font-weight: 900 !important;
 }
 
 .ttLectureHeader {
-  background: #1976d2 !important;
+  background: #1d4ed8 !important;
   color: #ffffff !important;
   font-weight: 900 !important;
 }
 
 .ttDayCell {
-  background: #e3f2fd;
+  background: #eff6ff;
   font-weight: 800;
   color: #111827;
   text-align: center;
-  border-right: 2px solid #90caf9;
+  border-right: 2px solid #93c5fd;
 }
 
 .ttTable tbody tr:nth-child(even) {
@@ -377,6 +535,11 @@
 .ttTable tbody td {
   text-align: left;
   min-width: 120px;
+}
+
+.ttTable tbody td,
+.ttTable tbody th {
+  transition: background-color 0.12s ease;
 }
 
 .savedList {
@@ -406,26 +569,36 @@
 
 .pdfMeta {
   display: grid;
-  gap: 2px;
+  gap: 3px;
   text-align: left;
 }
 
 .pdfTitle {
-  font-weight: 700;
+  font-weight: 800;
+  color: #0f172a;
+  font-size: 15px;
 }
 
 .pdfSubtitle {
-  color: #6b7280;
+  color: #64748b;
   font-size: 13px;
+  font-weight: 500;
 }
 
 .pdfHint {
-  color: #6b7280;
+  color: #64748b;
   font-size: 13px;
+  font-weight: 500;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
 }
 
 .pdfViewer {
   min-height: 0;
+  position: relative;
+  background: #f1f5f9;
 }
 
 .pdfFrame {
@@ -433,85 +606,130 @@
   height: 100%;
   border: 0;
   display: block;
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.05);
 }
 
 .pdfEmpty {
   height: 100%;
   display: grid;
   place-items: center;
-  color: #6b7280;
-  padding: 32px;
-  background: linear-gradient(180deg, #ffffff, #f9fafb);
+  color: #64748b;
+  padding: 48px 32px;
+  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
 }
 
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(17, 24, 39, 0.45);
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
   display: grid;
   place-items: center;
   padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .modal {
-  width: min(520px, 100%);
+  width: min(480px, 100%);
   background: #ffffff;
   border: 1px solid #e5e7eb;
-  border-radius: 16px;
+  border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.3);
+  animation: slideUp 0.25s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .modalHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
+  padding: 16px 20px;
   border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(180deg, #fafbfc, #ffffff);
 }
 
 .modalTitle {
-  font-weight: 800;
+  font-weight: 900;
+  color: #0f172a;
+  font-size: 18px;
 }
 
 .iconBtn {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 10px;
   border: 1px solid #e5e7eb;
   background: #ffffff;
   cursor: pointer;
-  font-size: 20px;
+  font-size: 22px;
   line-height: 1;
+  transition: all 0.15s ease;
+  color: #64748b;
+}
+
+.iconBtn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
 }
 
 .modalBody {
-  padding: 16px;
+  padding: 20px;
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 
 .field {
   display: grid;
-  gap: 6px;
+  gap: 7px;
   text-align: left;
 }
 
 .fieldLabel {
-  font-weight: 700;
-  font-size: 13px;
+  font-weight: 800;
+  font-size: 12px;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
 }
 
 .input {
   border: 1px solid #e5e7eb;
   border-radius: 12px;
-  padding: 10px 12px;
+  padding: 11px 14px;
   outline: none;
+  font-weight: 500;
+  color: #0f172a;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+}
+
+.input:hover {
+  border-color: #cbd5e1;
 }
 
 .input:focus {
   border-color: #93c5fd;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15), 0 2px 6px rgba(15, 23, 42, 0.04);
 }
 
 .error {
@@ -602,15 +820,86 @@
 /* Timetable cell editability */
 .ttCellEditable {
   cursor: pointer;
-  background: #eff6ff;
+  background: #eef2ff;
 }
 
 .ttCellEditable:hover {
   background: #dbeafe;
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.35);
 }
 
 .ttCellLocked {
   cursor: not-allowed;
   background: #f9fafb;
   color: #6b7280;
+}
+
+/* Footer */
+.appFooter {
+  margin-top: 24px;
+  padding: 18px 20px;
+  text-align: center;
+  color: #475569;
+  font-size: 13px;
+  background: #ffffff;
+  border-top: 1px solid #e5e7eb;
+  box-shadow: 0 -10px 20px rgba(15, 23, 42, 0.04);
+}
+
+.appFooter p {
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+/* Department filter */
+.department-filter {
+  display: grid;
+  gap: 6px;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06);
+  max-width: 280px;
+}
+
+.department-filter label {
+  font-size: 12px;
+  font-weight: 800;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.department-filter select {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: #ffffff;
+  outline: none;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.department-filter select:focus {
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+@media (max-width: 720px) {
+  .editHeader {
+    padding: 14px;
+  }
+
+  .editCard {
+    padding: 14px;
+  }
+
+  .ttTable th,
+  .ttTable td {
+    font-size: 12px;
+    padding: 10px 8px;
+  }
 }

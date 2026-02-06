@@ -177,7 +177,7 @@ function parseCellText(raw) {
 }
 
 // Helper to render a timetable as a grid: rows = days, columns = lecture numbers (1-10).
-// Designed for landscape page so all 10 lecture columns fit. Returns height used.
+// Designed for landscape page so all 10 lecture columns fit.
 function renderRoomTimetableGrid(doc, roomId, timetable, startY = 50) {
   const dayOrder = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
   const availableDays = Object.keys(timetable || {});
@@ -189,7 +189,7 @@ function renderRoomTimetableGrid(doc, roomId, timetable, startY = 50) {
   const usableWidth = pageWidth - margin * 2;
   const dayColWidth = 52;
   const lectureColWidth = (usableWidth - dayColWidth) / 10;
-  const rowHeight = 44;
+  const rowHeight = 70;
   const startX = margin;
   const tableStartY = startY + 22;
 
@@ -249,13 +249,14 @@ function renderRoomTimetableGrid(doc, roomId, timetable, startY = 50) {
       const allocatedDept = entry.allocatedDept || '';
 
       const parts = [];
-      if (subjectCode) parts.push(subjectCode);
-      if (subjectName) parts.push(subjectName);
-      if (branch) parts.push(branch);
-      if (section) parts.push(`Sec ${section}`);
-      if (teacher) parts.push(teacher);
+      if (subjectCode) parts.push(String(subjectCode));
+      if (subjectName) parts.push(String(subjectName));
+      if (teacher) parts.push(String(teacher));
+      if (branch) parts.push(String(branch));
+      if (section) parts.push(String(section));
+      
       let cellText = parts.join('\n');
-      if (!cellText && allocatedDept) cellText = `[${allocatedDept}]`;
+      if (!cellText && allocatedDept) cellText = String(allocatedDept);
 
       doc.rect(x, y, lectureColWidth, rowHeight).stroke();
       doc.fillColor('#1f2937');
@@ -266,9 +267,6 @@ function renderRoomTimetableGrid(doc, roomId, timetable, startY = 50) {
       });
     });
   });
-
-  const tableHeight = rowHeight * (days.length + 1);
-  return (tableStartY - startY) + tableHeight + 12;
 }
 
 // Save / update a single lecture entry for a room (with permission check)
@@ -495,39 +493,13 @@ app.get('/api/rooms/timetable/pdf', async (req, res) => {
     doc.pipe(res);
 
     const topMarginY = 42;
-    const gapBetweenTables = 28;
-    let index = 0;
 
-    while (index < roomsWithData.length) {
-      const pageHeight = doc.page.height - doc.page.margins.bottom;
-
-      const roomA = roomsWithData[index];
-      const { roomId: roomIdA, timetable: timetableA = {} } = roomA;
-
-      if (index > 0) {
+    roomsWithData.forEach((room, idx) => {
+      if (idx > 0) {
         doc.addPage({ layout: 'landscape' });
       }
-
-      const heightA = renderRoomTimetableGrid(doc, roomIdA, timetableA, topMarginY);
-      index += 1;
-
-      if (index >= roomsWithData.length) {
-        break;
-      }
-
-      const roomB = roomsWithData[index];
-      const { roomId: roomIdB, timetable: timetableB = {} } = roomB;
-      const secondStartY = topMarginY + heightA + gapBetweenTables;
-
-      if (secondStartY + 120 > pageHeight) {
-        doc.addPage({ layout: 'landscape' });
-        renderRoomTimetableGrid(doc, roomIdB, timetableB, topMarginY);
-      } else {
-        renderRoomTimetableGrid(doc, roomIdB, timetableB, secondStartY);
-      }
-
-      index += 1;
-    }
+      renderRoomTimetableGrid(doc, room.roomId, room.timetable || {}, topMarginY);
+    });
 
     doc.end();
   } catch (err) {
