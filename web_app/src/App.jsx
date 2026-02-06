@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import './App.css';
 import Footer from './components/common/Footer.jsx';
+import TimeTableGrid from './components/timetable/TimeTableGrid.jsx';
 import { useAuth } from './hooks/useAuth.js';
 import Dashboard from './pages/Dashboard.jsx';
 import TimetableEdit from './pages/TimetableEdit.jsx';
@@ -23,23 +24,43 @@ export default function App() {
 
   const [activePage, setActivePage] = useState('viewer'); // 'viewer' | 'dashboard' | 'edit'
 
-  const [selectedBranch, setSelectedBranch] = useState('');
+  const [selectedDepartment, setSelectedDepartment] = useState('');
   const [selectedRoom, setSelectedRoom] = useState('');
-  const [selectedSubject, setSelectedSubject] = useState('');
+  const [selectedTeacher, setSelectedTeacher] = useState('');
 
-  // NOTE: These can be replaced with real data from src/data/* when available.
-  const branchOptions = useMemo(
-    () => ['CSE', 'ECE', 'EEE', 'MECH', 'CIVIL'],
-    []
-  );
-  const roomOptions = useMemo(
-    () => ['Room 101', 'Room 102', 'Lab 1', 'Lab 2', 'Seminar Hall'],
-    []
-  );
-  const subjectOptions = useMemo(
-    () => ['Mathematics', 'Data Structures', 'DBMS', 'Operating Systems', 'Networks'],
-    []
-  );
+  const [timetableByRoom, setTimetableByRoom] = useState({});
+  const [isTimetableLoading, setIsTimetableLoading] = useState(false);
+  const [timetableError, setTimetableError] = useState('');
+
+  const roomOptions = useMemo(() => {
+    return Object.keys(timetableByRoom || {}).sort();
+  }, [timetableByRoom]);
+
+  const departmentOptions = useMemo(() => {
+    const deptSet = new Set();
+    Object.values(timetableByRoom || {}).forEach((roomTimetable) => {
+      Object.values(roomTimetable || {}).forEach((dayEntries) => {
+        Object.values(dayEntries || {}).forEach((entry) => {
+          const dept = entry?.allocatedDept ? String(entry.allocatedDept).trim() : '';
+          if (dept) deptSet.add(dept);
+        });
+      });
+    });
+    return Array.from(deptSet).sort();
+  }, [timetableByRoom]);
+
+  const teacherOptions = useMemo(() => {
+    const teacherSet = new Set();
+    Object.values(timetableByRoom || {}).forEach((roomTimetable) => {
+      Object.values(roomTimetable || {}).forEach((dayEntries) => {
+        Object.values(dayEntries || {}).forEach((entry) => {
+          const teacher = entry?.teacher ? String(entry.teacher).trim() : '';
+          if (teacher) teacherSet.add(teacher);
+        });
+      });
+    });
+    return Array.from(teacherSet).sort();
+  }, [timetableByRoom]);
 
   const canAdminLogin = true;
   const adminProfile = useMemo(() => {
@@ -153,6 +174,68 @@ export default function App() {
     };
   }, [activePage]);
 
+  useEffect(() => {
+    if (activePage !== 'viewer') return;
+
+    let cancelled = false;
+    const loadTimetables = async () => {
+      setIsTimetableLoading(true);
+      setTimetableError('');
+      try {
+        const roomsRes = await fetch(`${API_BASE_URL}/api/rooms`, { method: 'GET' });
+        if (!roomsRes.ok) {
+          const errText = await roomsRes.text();
+          throw new Error(errText || `Error ${roomsRes.status}`);
+        }
+
+        const roomsData = await roomsRes.json();
+        const roomIds = (roomsData.rooms || []).filter(Boolean);
+
+        if (!roomIds.length) {
+          if (!cancelled) setTimetableByRoom({});
+          return;
+        }
+
+        const results = await Promise.all(
+          roomIds.map(async (roomId) => {
+            try {
+              const res = await fetch(
+                `${API_BASE_URL}/api/rooms/${encodeURIComponent(roomId)}/timetable`,
+                { method: 'GET' }
+              );
+              if (!res.ok) return [roomId, {}];
+              const data = await res.json();
+              return [roomId, data.timetable || {}];
+            } catch (err) {
+              console.error('Failed to fetch timetable for room', roomId, err);
+              return [roomId, {}];
+            }
+          })
+        );
+
+        if (!cancelled) {
+          const nextMap = {};
+          results.forEach(([roomId, timetable]) => {
+            nextMap[roomId] = timetable || {};
+          });
+          setTimetableByRoom(nextMap);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setTimetableError(err?.message || 'Failed to load timetables.');
+        }
+      } finally {
+        if (!cancelled) setIsTimetableLoading(false);
+      }
+    };
+
+    loadTimetables();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activePage]);
+
   const onDownloadAllTimetablesPdf = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/rooms/timetable/pdf`, {
@@ -233,7 +316,8 @@ export default function App() {
               onBackToViewer={() => setActivePage('viewer')}
             />
           ) : (
-            <div className="pdfCard">
+            <>
+              <div className="pdfCard">
               <div className="pdfCardHeader">
                 <div className="pdfMeta">
                   <div className="pdfTitle">Displayed PDF</div>
@@ -241,56 +325,6 @@ export default function App() {
                 </div>
 
                 <div className="pdfHeaderControls">
-                  <div className="filterRow" aria-label="Filters">
-                    <label className="filterField">
-                      <div className="filterLabel">Branch</div>
-                      <select
-                        className="select"
-                        value={selectedBranch}
-                        onChange={(e) => setSelectedBranch(e.target.value)}
-                      >
-                        <option value="">All</option>
-                        {branchOptions.map((b) => (
-                          <option key={b} value={b}>
-                            {b}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-
-                    <label className="filterField">
-                      <div className="filterLabel">Room</div>
-                      <select
-                        className="select"
-                        value={selectedRoom}
-                        onChange={(e) => setSelectedRoom(e.target.value)}
-                      >
-                        <option value="">All</option>
-                        {roomOptions.map((r) => (
-                          <option key={r} value={r}>
-                            {r}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-
-                    <label className="filterField">
-                      <div className="filterLabel">Subject</div>
-                      <select
-                        className="select"
-                        value={selectedSubject}
-                        onChange={(e) => setSelectedSubject(e.target.value)}
-                      >
-                        <option value="">All</option>
-                        {subjectOptions.map((s) => (
-                          <option key={s} value={s}>
-                            {s}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  </div>
-
                   <div className="pdfHeaderButtons">
                     {isAuthenticated ? (
                       <label className="btn btnGhost">
@@ -323,7 +357,78 @@ export default function App() {
                   <div className="pdfEmpty">Select a PDF (admin) to display it here.</div>
                 )}
               </div>
-            </div>
+              </div>
+
+              <div className="editCard" style={{ marginTop: 16 }}>
+              <div className="previewHeader">
+                <div className="previewMeta">
+                  <div className="previewTitle">Timetable Browser</div>
+                  <div className="previewSubtitle">
+                    Filter by department, room, or teacher. Non-matching entries are hidden.
+                  </div>
+                </div>
+              </div>
+
+              <div className="filterRow" aria-label="Timetable filters">
+                <label className="filterField">
+                  <div className="filterLabel">Department</div>
+                  <select
+                    className="select"
+                    value={selectedDepartment}
+                    onChange={(e) => setSelectedDepartment(e.target.value)}
+                  >
+                    <option value="">All</option>
+                    {departmentOptions.map((dept) => (
+                      <option key={dept} value={dept}>
+                        {dept}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="filterField">
+                  <div className="filterLabel">Room</div>
+                  <select
+                    className="select"
+                    value={selectedRoom}
+                    onChange={(e) => setSelectedRoom(e.target.value)}
+                  >
+                    <option value="">All</option>
+                    {roomOptions.map((room) => (
+                      <option key={room} value={room}>
+                        {room}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="filterField">
+                  <div className="filterLabel">Teacher</div>
+                  <select
+                    className="select"
+                    value={selectedTeacher}
+                    onChange={(e) => setSelectedTeacher(e.target.value)}
+                  >
+                    <option value="">All</option>
+                    {teacherOptions.map((teacher) => (
+                      <option key={teacher} value={teacher}>
+                        {teacher}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              <TimeTableGrid
+                timetableByRoom={timetableByRoom}
+                selectedRoom={selectedRoom}
+                selectedDepartment={selectedDepartment}
+                selectedTeacher={selectedTeacher}
+                loading={isTimetableLoading}
+                error={timetableError}
+              />
+              </div>
+            </>
           )}
         </main>
 
