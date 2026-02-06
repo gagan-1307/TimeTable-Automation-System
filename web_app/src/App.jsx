@@ -10,12 +10,13 @@ import { TimetableProvider } from './context/TimetableContext.jsx';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
 export default function App() {
-  const { isAuthenticated, adminId, login, logout } = useAuth();
+  const { isAuthenticated, user, login, logout, checkSession, getAuthHeader } = useAuth();
 
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const [pdfObjectUrl, setPdfObjectUrl] = useState('');
   const [pdfFileName, setPdfFileName] = useState('');
@@ -42,16 +43,20 @@ export default function App() {
 
   const canAdminLogin = true;
   const adminProfile = useMemo(() => {
-    // NOTE: sample values for now — replace with real admin profile data later.
-    if (!adminId) return null;
+    if (!user) return null;
+    const isInstitute = user.role === 'institute_incharge';
     return {
-      id: adminId,
-      name: 'Admin User',
-      post: 'Timetable In-charge',
-      role: 'Administrator',
-      department: 'CSE',
+      id: user.email,
+      name: user.name,
+      post: isInstitute ? 'Institute Timetable In-charge' : 'Department Timetable In-charge',
+      role: isInstitute ? 'Institute Incharge' : 'Department Incharge',
+      department: user.department || '-',
     };
-  }, [adminId]);
+  }, [user]);
+
+  useEffect(() => {
+    checkSession();
+  }, []);
 
   const onPickPdf = (e) => {
     const file = e.target.files?.[0];
@@ -83,15 +88,19 @@ export default function App() {
     setLoginError('');
   };
 
-  const onSubmitLogin = (e) => {
+  const onSubmitLogin = async (e) => {
     e.preventDefault();
-    const ok = login(loginId.trim(), password);
-    if (ok) {
+    setLoginError('');
+    setIsLoggingIn(true);
+    try {
+      await login(loginId.trim(), password);
       setActivePage('dashboard');
       onCloseLogin();
-      return;
+    } catch (err) {
+      setLoginError(err?.message || 'Invalid email or password.');
+    } finally {
+      setIsLoggingIn(false);
     }
-    setLoginError('Invalid Admin ID or Password.');
   };
 
   const viewerSrc = useMemo(() => {
@@ -186,8 +195,8 @@ export default function App() {
           <div className="appHeaderRight">
             {isAuthenticated ? (
               <div className="headerAuth">
-                <div className="headerAuthId" title={adminId}>
-                  {adminId}
+                <div className="headerAuthId" title={user?.email}>
+                  {user?.name} ({user?.role === 'institute_incharge' ? 'Institute' : user?.department})
                 </div>
                 <button className="btn" type="button" onClick={onLogout}>
                   Logout
@@ -215,7 +224,7 @@ export default function App() {
                 </button>
                 <div className="pageShellTitle">Edit Timetable</div>
               </div>
-              <TimetableEdit />
+              <TimetableEdit getAuthHeader={getAuthHeader} user={user} />
             </div>
           ) : activePage === 'dashboard' && isAuthenticated ? (
             <Dashboard
@@ -357,11 +366,11 @@ export default function App() {
                 {loginError ? <div className="error">{loginError}</div> : null}
 
                 <div className="modalActions">
-                  <button className="btn" type="button" onClick={onCloseLogin}>
+                  <button className="btn" type="button" onClick={onCloseLogin} disabled={isLoggingIn}>
                     Cancel
                   </button>
-                  <button className="btn btnPrimary" type="submit">
-                    Login
+                  <button className="btn btnPrimary" type="submit" disabled={isLoggingIn}>
+                    {isLoggingIn ? 'Logging in…' : 'Login'}
                   </button>
                 </div>
               </form>

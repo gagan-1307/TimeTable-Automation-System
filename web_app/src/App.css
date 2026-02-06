@@ -324,11 +324,12 @@
   width: 100%;
   border-collapse: collapse;
   background: #ffffff;
+  border: 2px solid #111827;
 }
 
 .ttTable th,
 .ttTable td {
-  border-bottom: 1px solid #f3f4f6;
+  border: 1px solid #111827;
   padding: 10px 12px;
   text-align: left;
   vertical-align: top;
@@ -338,9 +339,44 @@
 .ttTable thead th {
   position: sticky;
   top: 0;
-  background: #f9fafb;
+  background: #1976d2;
+  color: #ffffff;
   z-index: 1;
   font-weight: 900;
+  text-align: center;
+}
+
+.ttDayHeader {
+  background: #004c99 !important;
+  color: #ffffff !important;
+  font-weight: 900 !important;
+}
+
+.ttLectureHeader {
+  background: #1976d2 !important;
+  color: #ffffff !important;
+  font-weight: 900 !important;
+}
+
+.ttDayCell {
+  background: #e3f2fd;
+  font-weight: 800;
+  color: #111827;
+  text-align: center;
+  border-right: 2px solid #90caf9;
+}
+
+.ttTable tbody tr:nth-child(even) {
+  background-color: #f9fafb;
+}
+
+.ttTable tbody tr:nth-child(odd) {
+  background-color: #ffffff;
+}
+
+.ttTable tbody td {
+  text-align: left;
+  min-width: 120px;
 }
 
 .savedList {
@@ -505,4 +541,76 @@
   clip: rect(0, 0, 0, 0) !important;
   white-space: nowrap !important;
   border: 0 !important;
+}
+
+/* Cell editor modal */
+.cellEditorModal {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.5);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  z-index: 100;
+}
+
+.cellEditorContent {
+  width: min(520px, 100%);
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+}
+
+.cellEditorHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.cellEditorHeader h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.cellEditorForm {
+  padding: 16px;
+}
+
+.formGrid {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.fieldHint {
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.cellEditorActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* Timetable cell editability */
+.ttCellEditable {
+  cursor: pointer;
+  background: #eff6ff;
+}
+
+.ttCellEditable:hover {
+  background: #dbeafe;
+}
+
+.ttCellLocked {
+  cursor: not-allowed;
+  background: #f9fafb;
+  color: #6b7280;
 }

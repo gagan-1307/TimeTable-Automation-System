@@ -12,12 +12,32 @@ const PORT = process.env.PORT || 5000;
 const MONGO_URI =
   'mongodb+srv://nishant3054_db_user:KkW6HP40cWhe6E5v@cluster0.rxiurt8.mongodb.net/?appName=Cluster0';
 
+// Define Users schema for authentication
+const userSchema = new mongoose.Schema(
+  {
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    name: { type: String, required: true },
+    role: { 
+      type: String, 
+      enum: ['institute_incharge', 'dept_incharge'], 
+      required: true 
+    },
+    department: { type: String, default: null }, // null for institute_incharge, dept code for dept_incharge
+  },
+  { timestamps: true }
+);
+
+const User = mongoose.model('User', userSchema);
+
 // Define Rooms schema:
-// rooms -> roomId -> day -> lectureNo -> { subject, teacher, class }
+// rooms -> roomId -> day -> lectureNo -> { 
+//   allocatedDept, subjectCode, subjectName, branch, section, teacher 
+// }
 const roomSchema = new mongoose.Schema(
   {
     roomId: { type: String, required: true, unique: true },
-    // Nested object: { [day]: { [lectureNo]: { subject, teacher, class } } }
+    // Nested object: { [day]: { [lectureNo]: { allocatedDept, subjectCode, subjectName, branch, section, teacher } } }
     timetable: {
       type: mongoose.Schema.Types.Mixed,
       default: {},
@@ -31,12 +51,104 @@ const Room = mongoose.model('Room', roomSchema);
 app.use(cors());
 app.use(express.json());
 
+// Simple authentication middleware (in production, use JWT tokens)
+const authenticateUser = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'Authentication required.' });
+  }
+  
+  const token = authHeader.substring(7);
+  try {
+    // In production, verify JWT token here
+    // For now, decode base64 token: email:password
+    const decoded = Buffer.from(token, 'base64').toString('utf-8');
+    const [email, password] = decoded.split(':');
+    
+    const user = await User.findOne({ email, password });
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid credentials.' });
+    }
+    
+    req.user = user;
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: 'Invalid authentication token.' });
+  }
+};
+
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
     dbConnected: mongoose.connection.readyState === 1,
     timestamp: new Date().toISOString(),
   });
+});
+
+// Authentication endpoints
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required.' });
+    }
+    
+    const user = await User.findOne({ email, password });
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid credentials.' });
+    }
+    
+    // Create simple token (in production, use JWT)
+    const token = Buffer.from(`${email}:${password}`).toString('base64');
+    
+    return res.status(200).json({
+      message: 'Login successful.',
+      token,
+      user: {
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        department: user.department,
+      },
+    });
+  } catch (err) {
+    console.error('Error in login', err);
+    return res.status(500).json({ message: 'Internal server error.' });
+  }
+});
+
+// List all room IDs (public, for dropdowns)
+app.get('/api/rooms', async (req, res) => {
+  try {
+    const rooms = await Room.find({}).select('roomId').lean();
+    return res.status(200).json({
+      rooms: (rooms || []).map((r) => r.roomId).sort(),
+    });
+  } catch (err) {
+    console.error('Error listing rooms', err);
+    return res.status(500).json({ message: 'Internal server error.' });
+  }
+});
+
+// Get timetable data for a room (public endpoint)
+app.get('/api/rooms/:roomId/timetable', async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    const room = await Room.findOne({ roomId });
+    
+    if (!room) {
+      return res.status(404).json({ message: 'Room not found.' });
+    }
+    
+    return res.status(200).json({
+      roomId: room.roomId,
+      timetable: room.timetable || {},
+    });
+  } catch (err) {
+    console.error('Error fetching timetable', err);
+    return res.status(500).json({ message: 'Internal server error.' });
+  }
 });
 
 // Small helper so backend can also parse "Subject (Teacher)"
@@ -64,170 +176,123 @@ function parseCellText(raw) {
   };
 }
 
-// Helper to render a timetable as a grid: rows = lecture numbers, columns = days.
-// Returns the total height used so callers can place multiple tables on a page.
-function renderRoomTimetableGrid(doc, roomId, timetable, startY = 60) {
-  const days = Object.keys(timetable || {}).sort();
+// Helper to render a timetable as a grid: rows = days, columns = lecture numbers (1-10).
+// Designed for landscape page so all 10 lecture columns fit. Returns height used.
+function renderRoomTimetableGrid(doc, roomId, timetable, startY = 50) {
+  const dayOrder = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+  const availableDays = Object.keys(timetable || {});
+  const days = dayOrder.filter(day => availableDays.includes(day));
+  const lectureNos = Array.from({ length: 10 }, (_, i) => String(i + 1));
 
-  // Collect all lecture numbers across all days
-  const lectureSet = new Set();
-  days.forEach((day) => {
-    const lectures = timetable[day] || {};
-    Object.keys(lectures).forEach((lecNo) => lectureSet.add(lecNo));
-  });
+  const pageWidth = doc.page.width;
+  const margin = 36;
+  const usableWidth = pageWidth - margin * 2;
+  const dayColWidth = 52;
+  const lectureColWidth = (usableWidth - dayColWidth) / 10;
+  const rowHeight = 44;
+  const startX = margin;
+  const tableStartY = startY + 22;
 
-  const lectureNos = Array.from(lectureSet).sort(
-    (a, b) => Number(a) - Number(b)
-  );
+  doc.fontSize(18).font('Helvetica-Bold').fillColor('#000000');
+  doc.text(`Timetable for Room ${roomId}`, 0, startY, { align: 'center', width: pageWidth });
 
-  // Title at top (centered)
-  const titleY = startY;
-  doc
-    .fontSize(20)
-    .text(`Timetable for Room ${roomId}`, 0, titleY, { align: 'center' });
-
-  if (!days.length || !lectureNos.length) {
-    doc
-      .fontSize(12)
-      .text('No timetable data available.', 0, titleY + 24, {
-        align: 'center',
-      });
-    // Rough height taken by title + message
-    return 60;
+  if (!days.length) {
+    doc.fontSize(11).text('No timetable data available.', 0, tableStartY, { align: 'center', width: pageWidth });
+    return 80;
   }
 
-  // Basic grid layout
-  const startX = 50;
-  const tableStartY = titleY + 28;
-  const colWidth = 90; // width per day column
-  const rowHeight = 45; // taller rows so subject + teacher can wrap
+  doc.lineWidth(0.4);
 
-   // Slightly thicker borders for table
-   doc.lineWidth(0.5);
-
-  // Header row: first cell is "Lecture", then each day
-  doc.fontSize(12).font('Helvetica-Bold');
-
-  // Colored header background for "Lecture" column (left heading column)
+  // Header row
+  doc.fontSize(10).font('Helvetica-Bold');
   doc.save();
-  doc
-    .rect(startX, tableStartY, colWidth, rowHeight)
-    .fillAndStroke('#004c99', '#002b55'); // deep blue for heading column
+  doc.rect(startX, tableStartY, dayColWidth, rowHeight).fillAndStroke('#1e3a5f', '#0d2137');
   doc.restore();
-
-  // Colored header background for day columns
-  days.forEach((_, index) => {
-    const x = startX + colWidth * (index + 1);
-    doc.save();
-    doc
-      .rect(x, tableStartY, colWidth, rowHeight)
-      .fillAndStroke('#1976d2', '#0d47a1'); // lighter blue for header row
-    doc.restore();
-  });
-
-  // Header text for "Lecture" column
   doc.fillColor('#ffffff');
-  doc.text('Lecture', startX + 4, tableStartY + 10, {
-    width: colWidth - 8,
-    align: 'center',
-  });
+  doc.text('Day', startX + 2, tableStartY + 14, { width: dayColWidth - 4, align: 'center' });
 
-  // Header text for each day
-  days.forEach((day, index) => {
-    const x = startX + colWidth * (index + 1);
+  lectureNos.forEach((lecNo, i) => {
+    const x = startX + dayColWidth + lectureColWidth * i;
+    doc.save();
+    doc.rect(x, tableStartY, lectureColWidth, rowHeight).fillAndStroke('#2563eb', '#1d4ed8');
+    doc.restore();
     doc.fillColor('#ffffff');
-    doc.text(day, x + 4, tableStartY + 10, {
-      width: colWidth - 8,
-      align: 'center',
-    });
+    doc.text(`L${lecNo}`, x + 2, tableStartY + 14, { width: lectureColWidth - 4, align: 'center' });
   });
 
-  // Body rows
-  doc.font('Helvetica').fontSize(10);
-  lectureNos.forEach((lecNo, rowIndex) => {
+  doc.font('Helvetica').fontSize(8).fillColor('#000000');
+
+  days.forEach((day, rowIndex) => {
     const y = tableStartY + rowHeight * (rowIndex + 1);
 
-    // Zebra striping for better readability
     if (rowIndex % 2 === 1) {
       doc.save();
-      doc
-        .rect(startX, y, colWidth * (days.length + 1), rowHeight)
-        .fillOpacity(0.04)
-        .fill('#000000');
+      doc.rect(startX, y, dayColWidth + lectureColWidth * 10, rowHeight).fillOpacity(0.06).fill('#000000');
       doc.restore();
     }
 
-    // Lecture number column cell + grid (light blue background for heading column)
     doc.save();
-    doc
-      .rect(startX, y, colWidth, rowHeight)
-      .fillAndStroke('#e3f2fd', '#90caf9');
+    doc.rect(startX, y, dayColWidth, rowHeight).fillAndStroke('#dbeafe', '#93c5fd');
     doc.restore();
-    doc.fillColor('#000000');
-    doc.text(String(lecNo), startX + 4, y + 12, {
-      width: colWidth - 8,
-      align: 'center',
-    });
+    doc.font('Helvetica-Bold').fontSize(9);
+    doc.text(day, startX + 2, y + 14, { width: dayColWidth - 4, align: 'center' });
+    doc.font('Helvetica').fontSize(8);
 
-    // Each day cell
-    days.forEach((day, colIndex) => {
-      const x = startX + colWidth * (colIndex + 1);
+    lectureNos.forEach((lecNo, colIndex) => {
+      const x = startX + dayColWidth + lectureColWidth * colIndex;
       const entry = (timetable[day] || {})[lecNo] || {};
-      const subject = entry.subject || '';
+      const subjectCode = entry.subjectCode || '';
+      const subjectName = entry.subjectName || '';
+      const branch = entry.branch || '';
+      const section = entry.section || '';
       const teacher = entry.teacher || '';
+      const allocatedDept = entry.allocatedDept || '';
 
-      let cellText = '';
-      if (!subject && !teacher) {
-        cellText = 'Free';
-      } else {
-        cellText = subject || '';
-        if (teacher) {
-          cellText += ` (${teacher})`;
-        }
-      }
+      const parts = [];
+      if (subjectCode) parts.push(subjectCode);
+      if (subjectName) parts.push(subjectName);
+      if (branch) parts.push(branch);
+      if (section) parts.push(`Sec ${section}`);
+      if (teacher) parts.push(teacher);
+      let cellText = parts.join('\n');
+      if (!cellText && allocatedDept) cellText = `[${allocatedDept}]`;
 
-      doc.rect(x, y, colWidth, rowHeight).stroke();
-      doc.fillColor('#000000');
-      doc.text(cellText, x + 4, y + 8, {
-        width: colWidth - 8,
-        height: rowHeight - 12,
+      doc.rect(x, y, lectureColWidth, rowHeight).stroke();
+      doc.fillColor('#1f2937');
+      doc.text(cellText, x + 3, y + 4, {
+        width: lectureColWidth - 6,
+        height: rowHeight - 8,
+        align: 'left',
       });
     });
   });
 
-  const tableHeight = rowHeight * (lectureNos.length + 1);
-  // Total height = title area + table
-  return (tableStartY - startY) + tableHeight + 10;
+  const tableHeight = rowHeight * (days.length + 1);
+  return (tableStartY - startY) + tableHeight + 12;
 }
 
-// Save / update a single lecture entry for a room
-app.post('/api/rooms/timetable', async (req, res) => {
+// Save / update a single lecture entry for a room (with permission check)
+app.post('/api/rooms/timetable', authenticateUser, async (req, res) => {
   try {
-    const { roomId, day, lectureNo, class: className } = req.body;
-    let { teacher, subject } = req.body;
+    const { roomId, day, lectureNo, allocatedDept, subjectCode, subjectName, branch, section, teacher } = req.body;
+    const user = req.user;
 
     console.log('Incoming /api/rooms/timetable', {
       roomId,
       day,
       lectureNo,
-      className,
+      allocatedDept,
+      subjectCode,
+      subjectName,
+      branch,
+      section,
       teacher,
-      subject,
+      userRole: user.role,
+      userDept: user.department,
     });
 
-    // If teacher is missing but subject contains "Subject (Teacher)", attempt to split it.
-    if (!teacher && typeof subject === 'string' && subject.includes('(')) {
-      const parsed = parseCellText(subject);
-      subject = parsed.subject;
-      teacher = parsed.teacher;
-    }
-
     if (!roomId || !day || !lectureNo) {
-      console.warn('Missing key fields in timetable payload', {
-        roomId,
-        day,
-        lectureNo,
-      });
+      return res.status(400).json({ message: 'roomId, day, and lectureNo are required.' });
     }
 
     // Find existing room or create a new one
@@ -241,12 +306,50 @@ app.post('/api/rooms/timetable', async (req, res) => {
       room.timetable[day] = {};
     }
 
-    // Save / overwrite this lecture slot
-    room.timetable[day][lectureNo] = {
-      class: className ?? null,
-      teacher: teacher ?? null,
-      subject: subject ?? null,
-    };
+    const existingEntry = room.timetable[day][lectureNo] || {};
+
+    // Permission check:
+    // - Institute incharge can allocate departments (set allocatedDept)
+    // - Department incharge can only edit cells allocated to their department
+    if (user.role === 'institute_incharge') {
+      // Institute incharge can allocate departments and set all fields
+      room.timetable[day][lectureNo] = {
+        allocatedDept: allocatedDept || existingEntry.allocatedDept || null,
+        subjectCode: subjectCode || existingEntry.subjectCode || null,
+        subjectName: subjectName || existingEntry.subjectName || null,
+        branch: branch || existingEntry.branch || null,
+        section: section || existingEntry.section || null,
+        teacher: teacher || existingEntry.teacher || null,
+      };
+    } else if (user.role === 'dept_incharge') {
+      // Department incharge can only edit if allocated to their department
+      const allocatedDeptForSlot = existingEntry.allocatedDept;
+      
+      if (!allocatedDeptForSlot) {
+        return res.status(403).json({ 
+          message: 'This time slot is not allocated to any department. Only institute incharge can allocate slots.' 
+        });
+      }
+      
+      if (allocatedDeptForSlot !== user.department) {
+        return res.status(403).json({ 
+          message: `You can only edit time slots allocated to ${user.department}. This slot is allocated to ${allocatedDeptForSlot}.` 
+        });
+      }
+
+      // Department incharge can update subject details but not change allocation
+      room.timetable[day][lectureNo] = {
+        ...existingEntry,
+        allocatedDept: allocatedDeptForSlot, // Keep existing allocation
+        subjectCode: subjectCode !== undefined ? subjectCode : existingEntry.subjectCode,
+        subjectName: subjectName !== undefined ? subjectName : existingEntry.subjectName,
+        branch: branch !== undefined ? branch : existingEntry.branch,
+        section: section !== undefined ? section : existingEntry.section,
+        teacher: teacher !== undefined ? teacher : existingEntry.teacher,
+      };
+    } else {
+      return res.status(403).json({ message: 'Unauthorized role.' });
+    }
 
     // Timetable is a Mixed field; explicitly mark it as modified so nested changes are persisted.
     room.markModified('timetable');
@@ -261,14 +364,7 @@ app.post('/api/rooms/timetable', async (req, res) => {
 
     return res.status(200).json({
       message: 'Lecture saved successfully.',
-      data: {
-        roomId: room.roomId,
-        day,
-        lectureNo,
-        class: className ?? null,
-        teacher: teacher ?? null,
-        subject: subject ?? null,
-      },
+      data: room.timetable[day][lectureNo],
     });
   } catch (err) {
     console.error('Error saving lecture', err);
@@ -276,16 +372,25 @@ app.post('/api/rooms/timetable', async (req, res) => {
   }
 });
 
-// Bulk save: double loop over rows x days and persist every non-empty cell
-app.post('/api/rooms/timetable/bulk', async (req, res) => {
+// Bulk save: Institute incharge uploads Excel with department allocations
+app.post('/api/rooms/timetable/bulk', authenticateUser, async (req, res) => {
   try {
     const { roomId, days, rows } = req.body || {};
+    const user = req.user;
 
     console.log('Incoming /api/rooms/timetable/bulk', {
       roomId,
       daysCount: Array.isArray(days) ? days.length : 0,
       rowsCount: Array.isArray(rows) ? rows.length : 0,
+      userRole: user.role,
     });
+
+    // Only institute incharge can do bulk uploads (to allocate departments)
+    if (user.role !== 'institute_incharge') {
+      return res.status(403).json({
+        message: 'Only institute incharge can perform bulk uploads to allocate time slots.',
+      });
+    }
 
     if (!roomId || !Array.isArray(days) || !Array.isArray(rows)) {
       return res.status(400).json({
@@ -298,46 +403,49 @@ app.post('/api/rooms/timetable/bulk', async (req, res) => {
       room = new Room({ roomId, timetable: {} });
     }
 
-    // Double loop: rows x days
+    // Double loop: rows (lectures) x days
+    // Expected format: row[day] = { allocatedDept, subjectCode, subjectName, branch, section, teacher }
+    // or row[day] = "Department" (just allocation)
     for (const row of rows) {
-      const lectureNo = row.lectureNo;
+      const lectureNo = String(row.lectureNo || '');
       if (!lectureNo) continue;
 
       for (const day of days) {
         const rawCell = row[day];
         if (rawCell == null || rawCell === '') continue;
 
-        // Cell may already be split as { subject, teacher } on frontend,
-        // or it may be a single string "Subject (Teacher)".
-        let subject = null;
-        let teacher = null;
-
-        if (typeof rawCell === 'string') {
-          const parsed = parseCellText(rawCell);
-          subject = parsed.subject;
-          teacher = parsed.teacher;
-        } else if (rawCell && typeof rawCell === 'object') {
-          subject = rawCell.subject ?? null;
-          teacher = rawCell.teacher ?? null;
-        }
-
-        if (!subject) continue;
-
         if (!room.timetable[day]) {
           room.timetable[day] = {};
         }
 
-        room.timetable[day][lectureNo] = {
-          class: null,
-          teacher,
-          subject,
-        };
+        // Handle different cell formats
+        if (typeof rawCell === 'string') {
+          // Simple string: treat as department allocation only
+          room.timetable[day][lectureNo] = {
+            allocatedDept: rawCell.trim() || null,
+            subjectCode: null,
+            subjectName: null,
+            branch: null,
+            section: null,
+            teacher: null,
+          };
+        } else if (rawCell && typeof rawCell === 'object') {
+          // Object with full details
+          room.timetable[day][lectureNo] = {
+            allocatedDept: rawCell.allocatedDept || null,
+            subjectCode: rawCell.subjectCode || null,
+            subjectName: rawCell.subjectName || null,
+            branch: rawCell.branch || null,
+            section: rawCell.section || null,
+            teacher: rawCell.teacher || null,
+          };
+        }
+
         console.log('Bulk save cell', {
           roomId,
           day,
           lectureNo,
-          subject,
-          teacher,
+          allocatedDept: room.timetable[day][lectureNo].allocatedDept,
         });
       }
     }
@@ -376,7 +484,7 @@ app.get('/api/rooms/timetable/pdf', async (req, res) => {
         .json({ message: 'No timetables found for any room.' });
     }
 
-    const doc = new PDFDocument({ margin: 40 });
+    const doc = new PDFDocument({ margin: 36, layout: 'landscape' });
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader(
@@ -386,9 +494,8 @@ app.get('/api/rooms/timetable/pdf', async (req, res) => {
 
     doc.pipe(res);
 
-    // Place up to two room timetables per page (stacked vertically)
-    const topMarginY = 60;
-    const gapBetweenTables = 30;
+    const topMarginY = 42;
+    const gapBetweenTables = 28;
     let index = 0;
 
     while (index < roomsWithData.length) {
@@ -397,33 +504,23 @@ app.get('/api/rooms/timetable/pdf', async (req, res) => {
       const roomA = roomsWithData[index];
       const { roomId: roomIdA, timetable: timetableA = {} } = roomA;
 
-      // New page for each pair
       if (index > 0) {
-        doc.addPage();
+        doc.addPage({ layout: 'landscape' });
       }
 
-      // First table on page
-      const heightA = renderRoomTimetableGrid(
-        doc,
-        roomIdA,
-        timetableA,
-        topMarginY
-      );
+      const heightA = renderRoomTimetableGrid(doc, roomIdA, timetableA, topMarginY);
       index += 1;
 
-      // If no second room, we're done with this page
       if (index >= roomsWithData.length) {
         break;
       }
 
       const roomB = roomsWithData[index];
       const { roomId: roomIdB, timetable: timetableB = {} } = roomB;
-
       const secondStartY = topMarginY + heightA + gapBetweenTables;
 
-      // If second table wouldn't fit, render it on a fresh page instead
-      if (secondStartY + 100 > pageHeight) {
-        doc.addPage();
+      if (secondStartY + 120 > pageHeight) {
+        doc.addPage({ layout: 'landscape' });
         renderRoomTimetableGrid(doc, roomIdB, timetableB, topMarginY);
       } else {
         renderRoomTimetableGrid(doc, roomIdB, timetableB, secondStartY);
@@ -458,7 +555,7 @@ app.get('/api/rooms/:roomId/timetable/pdf', async (req, res) => {
         .json({ message: `No timetable found for room ${roomId}.` });
     }
 
-    const doc = new PDFDocument({ margin: 40 });
+    const doc = new PDFDocument({ margin: 36, layout: 'landscape' });
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader(
@@ -466,7 +563,6 @@ app.get('/api/rooms/:roomId/timetable/pdf', async (req, res) => {
       `attachment; filename="timetable_${roomId}.pdf"`
     );
 
-    // Pipe PDF stream to response
     doc.pipe(res);
 
     const timetable = room.timetable || {};
