@@ -325,6 +325,56 @@ export default function App() {
                 </div>
 
                 <div className="pdfHeaderControls">
+                  <div className="filterRow" aria-label="Timetable filters">
+                    <label className="filterField">
+                      <div className="filterLabel">Department</div>
+                      <select
+                        className="select"
+                        value={selectedDepartment}
+                        onChange={(e) => setSelectedDepartment(e.target.value)}
+                      >
+                        <option value="">All</option>
+                        {departmentOptions.map((dept) => (
+                          <option key={dept} value={dept}>
+                            {dept}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label className="filterField">
+                      <div className="filterLabel">Room</div>
+                      <select
+                        className="select"
+                        value={selectedRoom}
+                        onChange={(e) => setSelectedRoom(e.target.value)}
+                      >
+                        <option value="">All</option>
+                        {roomOptions.map((room) => (
+                          <option key={room} value={room}>
+                            {room}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label className="filterField">
+                      <div className="filterLabel">Teacher</div>
+                      <select
+                        className="select"
+                        value={selectedTeacher}
+                        onChange={(e) => setSelectedTeacher(e.target.value)}
+                      >
+                        <option value="">All</option>
+                        {teacherOptions.map((teacher) => (
+                          <option key={teacher} value={teacher}>
+                            {teacher}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+
                   <div className="pdfHeaderButtons">
                     {isAuthenticated ? (
                       <label className="btn btnGhost">
@@ -367,56 +417,6 @@ export default function App() {
                     Filter by department, room, or teacher. Non-matching entries are hidden.
                   </div>
                 </div>
-              </div>
-
-              <div className="filterRow" aria-label="Timetable filters">
-                <label className="filterField">
-                  <div className="filterLabel">Department</div>
-                  <select
-                    className="select"
-                    value={selectedDepartment}
-                    onChange={(e) => setSelectedDepartment(e.target.value)}
-                  >
-                    <option value="">All</option>
-                    {departmentOptions.map((dept) => (
-                      <option key={dept} value={dept}>
-                        {dept}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <label className="filterField">
-                  <div className="filterLabel">Room</div>
-                  <select
-                    className="select"
-                    value={selectedRoom}
-                    onChange={(e) => setSelectedRoom(e.target.value)}
-                  >
-                    <option value="">All</option>
-                    {roomOptions.map((room) => (
-                      <option key={room} value={room}>
-                        {room}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <label className="filterField">
-                  <div className="filterLabel">Teacher</div>
-                  <select
-                    className="select"
-                    value={selectedTeacher}
-                    onChange={(e) => setSelectedTeacher(e.target.value)}
-                  >
-                    <option value="">All</option>
-                    {teacherOptions.map((teacher) => (
-                      <option key={teacher} value={teacher}>
-                        {teacher}
-                      </option>
-                    ))}
-                  </select>
-                </label>
               </div>
 
               <TimeTableGrid
