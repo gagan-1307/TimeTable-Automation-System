@@ -1,0 +1,11 @@
+/* Components - Import all component styles */
+@import './header.css';
+@import './buttons.css';
+@import './forms.css';
+@import './modal.css';
+@import './dashboard.css';
+@import './timetable.css';
+@import './cell-editor.css';
+@import './footer.css';
+@import './pdf-viewer.css';
+@import './error.css';

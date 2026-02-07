@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import './App.css';
 import Footer from './components/common/Footer.jsx';
 import TimeTableGrid from './components/timetable/TimeTableGrid.jsx';
 import { useAuth } from './hooks/useAuth.js';

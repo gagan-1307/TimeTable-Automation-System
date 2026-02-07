@@ -1,0 +1,15 @@
+/* Base Styles - Import all base styles */
+@import './variables.css';
+@import './reset.css';
+@import './typography.css';
+
+/* Base app styles */
+:root {
+  color-scheme: light;
+}
+
+.app {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}

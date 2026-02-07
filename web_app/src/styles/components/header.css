@@ -1,0 +1,102 @@
+/* Header Component Styles */
+
+.appHeader {
+  background: linear-gradient(135deg, #1e3a8a, #1d4ed8 45%, #2563eb);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.2);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  z-index: var(--z-sticky);
+}
+
+.appHeader::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.08) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+.appHeader::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+}
+
+.appTitle {
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.5px;
+  font-size: var(--font-size-xl);
+  color: #ffffff;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 1;
+  transition: transform var(--transition-base);
+}
+
+.appTitle:hover {
+  transform: translateX(2px);
+}
+
+.appHeaderRight {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  position: relative;
+  z-index: 1;
+}
+
+.headerAuth {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.headerAuthId {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 6px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all var(--transition-base);
+}
+
+.headerAuthId:hover {
+  background: var(--color-white);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .appHeader {
+    padding: var(--spacing-md) var(--spacing-lg);
+    flex-wrap: wrap;
+  }
+
+  .appTitle {
+    font-size: var(--font-size-lg);
+  }
+
+  .headerAuthId {
+    max-width: 180px;
+    font-size: var(--font-size-xs);
+    padding: 5px 10px;
+  }
+}

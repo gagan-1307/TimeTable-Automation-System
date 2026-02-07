@@ -519,6 +519,7 @@ app.get('/api/rooms/:roomId/timetable/pdf', async (req, res) => {
       return res.status(400).json({ message: 'roomId is required.' });
     }
 
+    
     const room = await Room.findOne({ roomId });
 
     if (!room || !room.timetable || !Object.keys(room.timetable).length) {

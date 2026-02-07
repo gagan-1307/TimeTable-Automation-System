@@ -1,0 +1,38 @@
+/* Footer Component Styles */
+
+.appFooter {
+  margin-top: var(--spacing-2xl);
+  padding: var(--spacing-xl) var(--spacing-xl);
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  background: var(--color-white);
+  border-top: 1px solid var(--border-light);
+  box-shadow: 0 -10px 20px rgba(15, 23, 42, 0.04);
+  position: relative;
+}
+
+.appFooter::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-medium), transparent);
+}
+
+.appFooter p {
+  margin: 0;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.2px;
+  color: var(--text-tertiary);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .appFooter {
+    padding: var(--spacing-lg) var(--spacing-md);
+    font-size: var(--font-size-xs);
+  }
+}

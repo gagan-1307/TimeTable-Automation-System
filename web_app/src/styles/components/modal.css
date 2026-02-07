@@ -1,0 +1,167 @@
+/* Modal Component Styles */
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-overlay);
+  backdrop-filter: blur(4px);
+  display: grid;
+  place-items: center;
+  padding: var(--spacing-xl);
+  animation: fadeIn var(--transition-slower) ease;
+  z-index: var(--z-modal-backdrop);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal {
+  width: min(480px, 100%);
+  max-height: 90vh;
+  background: var(--color-white);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-3xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-2xl);
+  animation: slideUp var(--transition-slower) ease;
+  display: flex;
+  flex-direction: column;
+  z-index: var(--z-modal);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-lg) var(--spacing-xl);
+  border-bottom: 1px solid var(--border-light);
+  background: linear-gradient(180deg, var(--bg-secondary), var(--color-white));
+  flex-shrink: 0;
+}
+
+.modalTitle {
+  font-weight: var(--font-weight-black);
+  color: var(--text-primary);
+  font-size: var(--font-size-lg);
+  margin: 0;
+}
+
+.modalBody {
+  padding: var(--spacing-xl);
+  display: grid;
+  gap: var(--spacing-lg);
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  flex-shrink: 0;
+}
+
+/* Cell Editor Modal */
+.cellEditorModal {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-overlay-dark);
+  backdrop-filter: blur(6px);
+  display: grid;
+  place-items: center;
+  padding: var(--spacing-xl);
+  z-index: var(--z-modal);
+  animation: fadeIn var(--transition-slower) ease;
+}
+
+.cellEditorContent {
+  width: min(520px, 100%);
+  max-height: 90vh;
+  background: var(--color-white);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-2xl);
+  display: flex;
+  flex-direction: column;
+  animation: slideUp var(--transition-slower) ease;
+}
+
+.cellEditorHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid var(--border-light);
+  background: linear-gradient(180deg, var(--bg-secondary), var(--color-white));
+  flex-shrink: 0;
+}
+
+.cellEditorHeader h3 {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--text-primary);
+}
+
+.cellEditorForm {
+  padding: var(--spacing-lg);
+  overflow-y: auto;
+  flex: 1;
+}
+
+.formGrid {
+  display: grid;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+}
+
+.cellEditorActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  flex-shrink: 0;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .modalOverlay,
+  .cellEditorModal {
+    padding: var(--spacing-md);
+  }
+
+  .modal,
+  .cellEditorContent {
+    width: 100%;
+    max-height: 95vh;
+  }
+
+  .modalHeader,
+  .cellEditorHeader {
+    padding: var(--spacing-md) var(--spacing-lg);
+  }
+
+  .modalBody,
+  .cellEditorForm {
+    padding: var(--spacing-lg);
+  }
+}
