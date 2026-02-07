@@ -263,6 +263,36 @@ export default function App() {
     }
   };
 
+  const onDownloadTeacherSchedulePdf = async () => {
+    const teacher = (selectedTeacher || '').trim();
+    if (!teacher) {
+      alert('Please select a teacher from the filter to download their schedule.');
+      return;
+    }
+    try {
+      const url = `${API_BASE_URL}/api/teachers/timetable/pdf?teacher=${encodeURIComponent(teacher)}`;
+      const res = await fetch(url, { method: 'GET' });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(errText || `Error ${res.status}`);
+      }
+
+      const blob = await res.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = `schedule_${teacher.replace(/[^a-zA-Z0-9\s.-]/g, '_').replace(/\s+/g, '_').slice(0, 40)}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error('Failed to download teacher schedule PDF', err);
+      alert(`Failed to download teacher schedule: ${err?.message || 'Unknown error'}`);
+    }
+  };
+
   const onLogout = () => {
     logout();
     setActivePage('viewer');
@@ -375,7 +405,7 @@ export default function App() {
                   </div>
 
                   <div className="pdfHeaderButtons">
-                    {isAuthenticated ? (
+                    {isAuthenticated && (
                       <label className="btn btnGhost">
                         Choose PDF
                         <input
@@ -385,8 +415,6 @@ export default function App() {
                           onChange={onPickPdf}
                         />
                       </label>
-                    ) : (
-                      <div className="pdfHint">Login as admin to upload a PDF.</div>
                     )}
                     <button
                       className="btn btnPrimary"
@@ -394,6 +422,15 @@ export default function App() {
                       onClick={onDownloadAllTimetablesPdf}
                     >
                       Download All Timetables (PDF)
+                    </button>
+                    <button
+                      className="btn btnGhost"
+                      type="button"
+                      onClick={onDownloadTeacherSchedulePdf}
+                      disabled={!selectedTeacher}
+                      title={selectedTeacher ? `Download timetable for ${selectedTeacher}` : 'Select a teacher first'}
+                    >
+                      Download Teacher Schedule (PDF)
                     </button>
                   </div>
                 </div>

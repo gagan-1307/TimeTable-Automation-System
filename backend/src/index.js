@@ -9,8 +9,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 // WARNING: Hardcoding credentials is insecure; prefer environment variables in real projects.
-const MONGO_URI =
-  'mongodb+srv://nishant3054_db_user:KkW6HP40cWhe6E5v@cluster0.rxiurt8.mongodb.net/?appName=Cluster0';
+const MONGO_URI =process.env.MONGO_URI;
 
 // Define Users schema for authentication
 const userSchema = new mongoose.Schema(
@@ -268,6 +267,145 @@ function renderRoomTimetableGrid(doc, roomId, timetable, startY = 50) {
     });
   });
 }
+
+// Helper to render a teacher's schedule as a timetable GRID (same format as room timetable).
+// scheduleGrid: { [day]: { [lectureNo]: { roomId, subjectCode, subjectName, branch, section } } }
+function renderTeacherScheduleGrid(doc, teacherName, scheduleGrid, startY = 50) {
+  const dayOrder = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+  const lectureNos = Array.from({ length: 10 }, (_, i) => String(i + 1));
+
+  const pageWidth = doc.page.width;
+  const margin = 36;
+  const usableWidth = pageWidth - margin * 2;
+  const dayColWidth = 52;
+  const lectureColWidth = (usableWidth - dayColWidth) / 10;
+  const rowHeight = 70;
+  const startX = margin;
+  const tableStartY = startY + 22;
+
+  doc.fontSize(18).font('Helvetica-Bold').fillColor('#000000');
+  doc.text(`Schedule for ${teacherName}`, 0, startY, { align: 'center', width: pageWidth });
+
+  doc.lineWidth(0.4);
+
+  // Header row: Day | L1 .. L10
+  doc.fontSize(10).font('Helvetica-Bold');
+  doc.save();
+  doc.rect(startX, tableStartY, dayColWidth, rowHeight).fillAndStroke('#1e3a5f', '#0d2137');
+  doc.restore();
+  doc.fillColor('#ffffff');
+  doc.text('Day', startX + 2, tableStartY + 14, { width: dayColWidth - 4, align: 'center' });
+
+  lectureNos.forEach((lecNo, i) => {
+    const x = startX + dayColWidth + lectureColWidth * i;
+    doc.save();
+    doc.rect(x, tableStartY, lectureColWidth, rowHeight).fillAndStroke('#2563eb', '#1d4ed8');
+    doc.restore();
+    doc.fillColor('#ffffff');
+    doc.text(`L${lecNo}`, x + 2, tableStartY + 14, { width: lectureColWidth - 4, align: 'center' });
+  });
+
+  doc.font('Helvetica').fontSize(8).fillColor('#000000');
+
+  dayOrder.forEach((day, rowIndex) => {
+    const y = tableStartY + rowHeight * (rowIndex + 1);
+
+    if (rowIndex % 2 === 1) {
+      doc.save();
+      doc.rect(startX, y, dayColWidth + lectureColWidth * 10, rowHeight).fillOpacity(0.06).fill('#000000');
+      doc.restore();
+    }
+
+    doc.save();
+    doc.rect(startX, y, dayColWidth, rowHeight).fillAndStroke('#dbeafe', '#93c5fd');
+    doc.restore();
+    doc.font('Helvetica-Bold').fontSize(9);
+    doc.text(day, startX + 2, y + 14, { width: dayColWidth - 4, align: 'center' });
+    doc.font('Helvetica').fontSize(8);
+
+    lectureNos.forEach((lecNo, colIndex) => {
+      const x = startX + dayColWidth + lectureColWidth * colIndex;
+      const entry = (scheduleGrid[day] || {})[lecNo] || null;
+
+      let cellText = '';
+      if (entry) {
+        const parts = [];
+        if (entry.subjectCode) parts.push(String(entry.subjectCode));
+        if (entry.subjectName) parts.push(String(entry.subjectName));
+        if (entry.branch) parts.push(String(entry.branch));
+        if (entry.section) parts.push(String(entry.section));
+        if (entry.roomId) parts.push(`Room ${entry.roomId}`);
+        cellText = parts.join('\n');
+      }
+
+      doc.rect(x, y, lectureColWidth, rowHeight).stroke();
+      doc.fillColor('#1f2937');
+      doc.text(cellText || '', x + 3, y + 4, {
+        width: lectureColWidth - 6,
+        height: rowHeight - 8,
+        align: 'left',
+      });
+    });
+  });
+}
+
+// Generate PDF for a teacher's full schedule in TIMETABLE (grid) format
+app.get('/api/teachers/timetable/pdf', async (req, res) => {
+  try {
+    const teacherName = (req.query.teacher || '').trim();
+    if (!teacherName) {
+      return res.status(400).json({ message: 'Query parameter "teacher" is required.' });
+    }
+
+    const rooms = await Room.find({}).lean();
+    if (!rooms || !rooms.length) {
+      return res.status(404).json({ message: 'No rooms found in database.' });
+    }
+
+    // Build grid: scheduleGrid[day][lectureNo] = { roomId, subjectCode, subjectName, branch, section }
+    const scheduleGrid = {};
+    const dayOrder = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+    dayOrder.forEach((d) => { scheduleGrid[d] = {}; });
+
+    for (const room of rooms) {
+      const timetable = room.timetable || {};
+      const roomId = room.roomId || '';
+      for (const day of dayOrder) {
+        const dayData = timetable[day] || {};
+        for (let lec = 1; lec <= 10; lec++) {
+          const lectureNo = String(lec);
+          const entry = dayData[lectureNo] || {};
+          const entryTeacher = (entry.teacher || '').trim();
+          if (entryTeacher && entryTeacher === teacherName) {
+            scheduleGrid[day][lectureNo] = {
+              roomId,
+              subjectCode: entry.subjectCode || '',
+              subjectName: entry.subjectName || '',
+              branch: entry.branch || '',
+              section: entry.section || '',
+            };
+          }
+        }
+      }
+    }
+
+    const safeName = teacherName.replace(/[^a-zA-Z0-9\s.-]/g, '_').replace(/\s+/g, '_').slice(0, 40);
+    const filename = `schedule_${safeName}.pdf`;
+
+    const doc = new PDFDocument({ margin: 36, layout: 'landscape' });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    doc.pipe(res);
+
+    renderTeacherScheduleGrid(doc, teacherName, scheduleGrid);
+    doc.end();
+  } catch (err) {
+    console.error('Error generating teacher schedule PDF', err);
+    if (!res.headersSent) {
+      return res.status(500).json({ message: 'Failed to generate PDF.' });
+    }
+  }
+});
 
 // Save / update a single lecture entry for a room (with permission check)
 app.post('/api/rooms/timetable', authenticateUser, async (req, res) => {
@@ -552,7 +690,7 @@ app.get('/api/rooms/:roomId/timetable/pdf', async (req, res) => {
 
 // Connect to MongoDB, then start server
 mongoose
-  .connect(MONGO_URI)
+  .connect(process.env.MONGO_URI)
   .then(() => {
     console.log('Connected to MongoDB');
     app.listen(PORT, () => {
