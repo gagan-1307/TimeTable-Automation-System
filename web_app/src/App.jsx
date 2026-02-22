@@ -7,7 +7,7 @@ import TimetableEdit from './pages/TimetableEdit.jsx';
 import { TimetableProvider } from './context/TimetableContext.jsx';
 
 // Vite-style env var (same base URL used elsewhere)
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://timetable-nitkkr.onrender.com';
 
 export default function App() {
   const { isAuthenticated, user, login, logout, checkSession, getAuthHeader } = useAuth();

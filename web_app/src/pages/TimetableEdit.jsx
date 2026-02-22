@@ -2,7 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { parseTimetableExcel } from '../utils/excelTimetable.js';
 import CellEditor from '../components/timetable/CellEditor.jsx';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://timetable-nitkkr.onrender.com';
 const DAY_ORDER = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
 const LECTURE_NOS = Array.from({ length: 10 }, (_, i) => String(i + 1));
 
