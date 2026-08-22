@@ -1,15 +1,16 @@
 /* Header Component Styles */
 
 .appHeader {
-  background: linear-gradient(135deg, #1e3a8a, #1d4ed8 45%, #2563eb);
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.2);
+  background: linear-gradient(135deg, #7f1d1d 0%, #a81f1f 100%);
+  border-bottom: 1px solid #7f1d1d;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
   position: relative;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-lg);
-  padding: var(--spacing-lg) var(--spacing-xl);
+  padding: 14px 24px;
   z-index: var(--z-sticky);
 }
 
@@ -17,7 +18,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(45deg, rgba(255, 255, 255, 0.08) 0%, transparent 100%);
+  background: radial-gradient(circle at top right, rgba(251, 191, 36, 0.25), transparent 70%);
   pointer-events: none;
 }
 
@@ -31,19 +32,44 @@
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
 }
 
-.appTitle {
-  font-weight: var(--font-weight-black);
-  letter-spacing: 0.5px;
-  font-size: var(--font-size-xl);
-  color: #ffffff;
-  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+.appLogoTitle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   position: relative;
   z-index: 1;
-  transition: transform var(--transition-base);
 }
 
-.appTitle:hover {
-  transform: translateX(2px);
+.appLogoIcon {
+  color: #fbbf24;
+  filter: drop-shadow(0 2px 8px rgba(251, 191, 36, 0.4));
+}
+
+.appTitleContainer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.appTitleBrand {
+  font-weight: 900;
+  font-size: 21px;
+  letter-spacing: 0.5px;
+  color: #ffffff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+.appTitleDivider {
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 300;
+  font-size: 18px;
+}
+
+.appTitleText {
+  font-weight: 500;
+  font-size: 15px;
+  color: #fecaca;
+  letter-spacing: 0.2px;
 }
 
 .appHeaderRight {
@@ -63,24 +89,53 @@
 .headerAuthId {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);
-  color: var(--text-primary);
+  color: #ffffff;
   max-width: 260px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  padding: 6px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 6px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(8px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: all var(--transition-base);
 }
 
 .headerAuthId:hover {
-  background: var(--color-white);
+  background: rgba(255, 255, 255, 0.2);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transform: translateY(-1px);
+}
+
+/* Header-specific high-contrast buttons overrides */
+.appHeader .btn {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: none;
+}
+
+.appHeader .btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: #ffffff;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.appHeader .btnPrimary {
+  background: #ffffff;
+  color: #a81f1f;
+  border-color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.appHeader .btnPrimary:hover {
+  background: #f8fafc;
+  border-color: #f8fafc;
+  color: #7f1d1d;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
 }
 
 /* Responsive */

@@ -1,34 +1,66 @@
 /* App-specific UI bits (global layout is in index.css) */
 
 .appHeader {
-  background: linear-gradient(135deg, #1e3a8a, #1d4ed8 45%, #2563eb);
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.2);
+  background: linear-gradient(135deg, #7f1d1d 0%, #a81f1f 100%);
+  border-bottom: 1px solid #7f1d1d;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
   position: relative;
   overflow: hidden;
+  padding: 14px 24px;
 }
 
 .appHeader::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(45deg, rgba(255,255,255,0.08) 0%, transparent 100%);
+  background: radial-gradient(circle at top right, rgba(251, 191, 36, 0.25), transparent 70%);
   pointer-events: none;
 }
 
-.appTitle {
-  font-weight: 900;
-  letter-spacing: 0.5px;
-  font-size: 20px;
-  color: #316def;
-  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+.appLogoTitle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   position: relative;
   z-index: 1;
+}
+
+.appLogoIcon {
+  color: #fbbf24;
+  filter: drop-shadow(0 2px 8px rgba(251, 191, 36, 0.4));
+}
+
+.appTitleContainer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.appTitleBrand {
+  font-weight: 900;
+  font-size: 21px;
+  letter-spacing: 0.5px;
+  color: #ffffff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+.appTitleDivider {
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 300;
+  font-size: 18px;
+}
+
+.appTitleText {
+  font-weight: 500;
+  font-size: 15px;
+  color: #fecaca;
+  letter-spacing: 0.2px;
 }
 
 .appHeaderRight {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   position: relative;
   z-index: 1;
 }
@@ -36,41 +68,48 @@
 .headerAuth {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .headerAuthId {
   font-size: 13px;
-  font-weight: 700;
-  color: #374151;
-  max-width: 260px;
+  font-weight: 600;
+  color: #ffffff;
+  max-width: 280px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  padding: 6px 10px;
-  border: 1px solid #e5e7eb;
+  padding: 6px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 999px;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
 }
 
 .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   appearance: none;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #cbd5e1;
   background: #ffffff;
-  color: #111827;
-  padding: 9px 16px;
-  border-radius: 10px;
+  color: #334155;
+  padding: 10px 18px;
+  border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
-  transition: all 0.18s ease;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
-  letter-spacing: 0.2px;
+  font-size: 13.5px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
 }
 
 .btn:hover {
-  background: #f9fafb;
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #94a3b8;
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
 }
 
 .btn:active {
@@ -78,41 +117,74 @@
 }
 
 .btn:disabled {
-  opacity: 0.6;
+  opacity: 0.55;
   cursor: not-allowed;
   transform: none;
+  box-shadow: none;
+}
+
+/* Header-specific high-contrast buttons */
+.appHeader .btn {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: none;
+}
+
+.appHeader .btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: #ffffff;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.appHeader .btnPrimary {
+  background: #ffffff;
+  color: #a81f1f;
+  border-color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.appHeader .btnPrimary:hover {
+  background: #f8fafc;
+  border-color: #f8fafc;
+  color: #7f1d1d;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
 }
 
 .btnPrimary {
-  border-color: #2563eb;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  border-color: #a81f1f;
+  background: #a81f1f;
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 2px 6px rgba(168, 31, 31, 0.2);
 }
 
 .btnPrimary:hover {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
+  background: #881313;
+  border-color: #881313;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(168, 31, 31, 0.35);
 }
 
 .btnGhost {
-  background: #eff6ff;
-  border-color: #bfdbfe;
-  color: #1d4ed8;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.12);
+  background: #fff5f5;
+  border-color: #fca5a5;
+  color: #a81f1f;
+  box-shadow: none;
 }
 
 .btnGhost:hover {
-  background: #dbeafe;
-  border-color: #93c5fd;
+  background: #ffe4e6;
+  border-color: #f87171;
+  color: #7f1d1d;
 }
 
 .pdfCard {
   background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.1);
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 2px 8px -1px rgba(15, 23, 42, 0.04);
   display: grid;
   grid-template-rows: auto 1fr;
   min-height: calc(100vh - 160px);
@@ -126,26 +198,25 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #2563eb, #3b82f6, #60a5fa);
-  opacity: 0.8;
+  background: linear-gradient(90deg, #7f1d1d 0%, #a81f1f 50%, #fbbf24 100%);
 }
 
 .pdfCardHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 18px 20px;
-  border-bottom: 1px solid #e5e7eb;
-  background: linear-gradient(180deg, #fafbfc, #ffffff);
+  gap: 20px;
+  padding: 22px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  background: #ffffff;
   position: relative;
   z-index: 1;
 }
 
 .pdfHeaderControls {
   display: flex;
-  align-items: flex-end;
-  gap: 14px;
+  align-items: center;
+  gap: 16px;
   flex-wrap: wrap;
   justify-content: flex-end;
 }
@@ -159,49 +230,49 @@
 
 .filterRow {
   display: flex;
-  gap: 10px;
-  align-items: flex-end;
+  gap: 12px;
+  align-items: center;
   flex-wrap: wrap;
 }
 
 .filterField {
-  display: grid;
-  gap: 6px;
-  text-align: left;
-  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: #fff5f5;
+  border-radius: 8px;
+  border: 1px solid #fee2e2;
+  transition: all 0.2s ease;
+}
+
+.filterField:focus-within {
+  border-color: #fca5a5;
   background: #ffffff;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 2px 8px rgba(168, 31, 31, 0.04);
 }
 
 .filterLabel {
-  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
   font-size: 11px;
-  color: #475569;
+  color: #a81f1f;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .select {
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 8px 10px;
-  background: #ffffff;
-  min-width: 160px;
+  border: 0;
+  background: transparent;
+  padding: 6px 4px;
+  min-width: 140px;
   outline: none;
   font-weight: 600;
-  color: #0f172a;
-  transition: all 0.15s ease;
-}
-
-.select:focus {
-  border-color: #93c5fd;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-}
-
-.select:hover {
-  border-color: #cbd5e1;
+  font-size: 13.5px;
+  color: #1e293b;
+  cursor: pointer;
 }
 
 /* Dashboard + page shells */
@@ -472,60 +543,65 @@
 .tableWrap {
   width: 100%;
   overflow: auto;
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.7);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 
 .ttTable {
   width: 100%;
   border-collapse: collapse;
   background: #ffffff;
-  border: 1px solid #0f172a;
+  border: 0;
 }
 
 .ttTable th,
 .ttTable td {
-  border: 1px solid #0f172a;
-  padding: 12px 10px;
+  border: 1px solid #f1f5f9;
+  padding: 14px 16px;
   text-align: left;
-  vertical-align: top;
-  font-size: 12.5px;
+  vertical-align: middle;
+  font-size: 13px;
 }
 
 .ttTable thead th {
   position: sticky;
   top: 0;
-  background: linear-gradient(180deg, #2563eb, #1d4ed8);
-  color: #ffffff;
+  background: #f8fafc;
+  color: #475569;
   z-index: 1;
-  font-weight: 900;
+  font-weight: 700;
   text-align: center;
   letter-spacing: 0.3px;
+  border-bottom: 2px solid #e2e8f0;
 }
 
 .ttDayHeader {
-  background: #0f172a !important;
+  background: #7f1d1d !important;
   color: #ffffff !important;
-  font-weight: 900 !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  font-size: 12px !important;
+  letter-spacing: 0.5px;
 }
 
 .ttLectureHeader {
-  background: #1d4ed8 !important;
+  background: #a81f1f !important;
   color: #ffffff !important;
-  font-weight: 900 !important;
+  font-weight: 700 !important;
+  font-size: 12px !important;
 }
 
 .ttDayCell {
-  background: #eff6ff;
-  font-weight: 800;
-  color: #111827;
+  background: #f8fafc;
+  font-weight: 700;
+  color: #1e293b;
   text-align: center;
-  border-right: 2px solid #93c5fd;
+  border-right: 2px solid #e2e8f0;
 }
 
 .ttTable tbody tr:nth-child(even) {
-  background-color: #f9fafb;
+  background-color: #f8fafc;
 }
 
 .ttTable tbody tr:nth-child(odd) {
@@ -534,7 +610,8 @@
 
 .ttTable tbody td {
   text-align: left;
-  min-width: 120px;
+  min-width: 130px;
+  color: #334155;
 }
 
 .ttTable tbody td,
@@ -820,12 +897,12 @@
 /* Timetable cell editability */
 .ttCellEditable {
   cursor: pointer;
-  background: #eef2ff;
+  background: #fff1f2;
 }
 
 .ttCellEditable:hover {
-  background: #dbeafe;
-  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.35);
+  background: #ffe4e6;
+  box-shadow: inset 0 0 0 1px rgba(168, 31, 31, 0.35);
 }
 
 .ttCellLocked {

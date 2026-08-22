@@ -279,7 +279,7 @@ function renderTeacherScheduleGrid(doc, teacherName, scheduleGrid, startY = 50) 
   const usableWidth = pageWidth - margin * 2;
   const dayColWidth = 52;
   const lectureColWidth = (usableWidth - dayColWidth) / 10;
-  const rowHeight = 70;
+  const rowHeight = 80;
   const startX = margin;
   const tableStartY = startY + 22;
 
@@ -294,7 +294,7 @@ function renderTeacherScheduleGrid(doc, teacherName, scheduleGrid, startY = 50) 
   doc.rect(startX, tableStartY, dayColWidth, rowHeight).fillAndStroke('#1e3a5f', '#0d2137');
   doc.restore();
   doc.fillColor('#ffffff');
-  doc.text('Day', startX + 2, tableStartY + 14, { width: dayColWidth - 4, align: 'center' });
+  doc.text('Day', startX + 2, tableStartY + 24, { width: dayColWidth - 4, align: 'center' });
 
   lectureNos.forEach((lecNo, i) => {
     const x = startX + dayColWidth + lectureColWidth * i;
@@ -302,10 +302,10 @@ function renderTeacherScheduleGrid(doc, teacherName, scheduleGrid, startY = 50) 
     doc.rect(x, tableStartY, lectureColWidth, rowHeight).fillAndStroke('#2563eb', '#1d4ed8');
     doc.restore();
     doc.fillColor('#ffffff');
-    doc.text(`L${lecNo}`, x + 2, tableStartY + 14, { width: lectureColWidth - 4, align: 'center' });
+    doc.text(`L${lecNo}`, x + 2, tableStartY + 24, { width: lectureColWidth - 4, align: 'center' });
   });
 
-  doc.font('Helvetica').fontSize(8).fillColor('#000000');
+  doc.font('Helvetica').fontSize(7.5).fillColor('#000000');
 
   dayOrder.forEach((day, rowIndex) => {
     const y = tableStartY + rowHeight * (rowIndex + 1);
@@ -320,8 +320,8 @@ function renderTeacherScheduleGrid(doc, teacherName, scheduleGrid, startY = 50) 
     doc.rect(startX, y, dayColWidth, rowHeight).fillAndStroke('#dbeafe', '#93c5fd');
     doc.restore();
     doc.font('Helvetica-Bold').fontSize(9);
-    doc.text(day, startX + 2, y + 14, { width: dayColWidth - 4, align: 'center' });
-    doc.font('Helvetica').fontSize(8);
+    doc.text(day, startX + 2, y + 24, { width: dayColWidth - 4, align: 'center' });
+    doc.font('Helvetica').fontSize(7.5);
 
     lectureNos.forEach((lecNo, colIndex) => {
       const x = startX + dayColWidth + lectureColWidth * colIndex;
@@ -332,9 +332,22 @@ function renderTeacherScheduleGrid(doc, teacherName, scheduleGrid, startY = 50) 
         const parts = [];
         if (entry.subjectCode) parts.push(String(entry.subjectCode));
         if (entry.subjectName) parts.push(String(entry.subjectName));
-        if (entry.branch) parts.push(String(entry.branch));
-        if (entry.section) parts.push(String(entry.section));
-        if (entry.roomId) parts.push(`Room ${entry.roomId}`);
+        
+        let classInfo = '';
+        if (entry.branch && entry.section) {
+          classInfo = `${entry.branch} - ${entry.section}`;
+        } else {
+          classInfo = entry.branch || entry.section || '';
+        }
+
+        if (entry.roomId) {
+          if (classInfo) {
+            classInfo += ` (Room ${entry.roomId})`;
+          } else {
+            classInfo = `Room ${entry.roomId}`;
+          }
+        }
+        if (classInfo) parts.push(classInfo);
         cellText = parts.join('\n');
       }
 

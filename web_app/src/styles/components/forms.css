@@ -100,6 +100,9 @@ textarea {
 }
 
 .filterLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
   font-weight: var(--font-weight-extrabold);
   font-size: var(--font-size-xs);
   color: var(--text-secondary);
