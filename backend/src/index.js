@@ -50,6 +50,33 @@ const Room = mongoose.model('Room', roomSchema);
 app.use(cors());
 app.use(express.json());
 
+// ─── MongoDB connection (lazy-cached for serverless) ─────────────────────────
+let isConnected = false;
+
+async function connectDB() {
+  if (isConnected) return;
+  await mongoose.connect(process.env.MONGO_URI, {
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+  });
+  isConnected = true;
+  console.log('Connected to MongoDB');
+}
+
+// Ensure DB is connected before every request (must be before route definitions)
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error('MongoDB connection failed', err);
+    res.status(503).json({ message: 'Database unavailable.' });
+  }
+});
+
+// Eagerly initiate connection on cold start (serverless)
+connectDB().catch((err) => console.error('DB cold-start init error:', err));
+
 // Simple authentication middleware (in production, use JWT tokens)
 const authenticateUser = async (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -698,30 +725,6 @@ app.get('/api/rooms/:roomId/timetable/pdf', async (req, res) => {
     if (!res.headersSent) {
       return res.status(500).json({ message: 'Failed to generate PDF.' });
     }
-  }
-});
-
-// ─── MongoDB connection (lazy-cached for serverless) ─────────────────────────
-let isConnected = false;
-
-async function connectDB() {
-  if (isConnected) return;
-  await mongoose.connect(process.env.MONGO_URI, {
-    serverSelectionTimeoutMS: 5000,
-    socketTimeoutMS: 45000,
-  });
-  isConnected = true;
-  console.log('Connected to MongoDB');
-}
-
-// Middleware to ensure DB is connected before handling requests
-app.use(async (req, res, next) => {
-  try {
-    await connectDB();
-    next();
-  } catch (err) {
-    console.error('MongoDB connection failed', err);
-    res.status(503).json({ message: 'Database unavailable.' });
   }
 });
 
