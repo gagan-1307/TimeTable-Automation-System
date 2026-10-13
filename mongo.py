@@ -1,10 +1,19 @@
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
+import os
 import sys
 
-MONGO_URI = (
-    "mongodb+srv://nishant3054_db_user:Nishantyadav2@cluster0.lamfpuu.mongodb.net/timetable?retryWrites=true&w=majority&authSource=admin"
-)
+# Load .env file for local development (no-op if python-dotenv is not installed)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+MONGO_URI = os.environ.get("MONGO_URI")
+if not MONGO_URI:
+    print("Error: MONGO_URI environment variable is not set.")
+    sys.exit(1)
 
 def connect_db():
     try:

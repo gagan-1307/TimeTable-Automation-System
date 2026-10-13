@@ -7,10 +7,13 @@
  * - Department incharges for CSE, ECE, EEE, MECH, CIVIL (can only edit cells allocated to their dept)
  */
 const mongoose = require('mongoose');
+require('dotenv').config();
 
-const MONGO_URI =
-  process.env.MONGO_URI ||
-  'mongodb+srv://nishant3054_db_user:KkW6HP40cWhe6E5v@cluster0.rxiurt8.mongodb.net/?appName=Cluster0';
+const MONGO_URI = process.env.MONGO_URI;
+if (!MONGO_URI) {
+  console.error('Error: MONGO_URI environment variable is not set. Aborting seed.');
+  process.exit(1);
+}
 
 const userSchema = new mongoose.Schema(
   {
