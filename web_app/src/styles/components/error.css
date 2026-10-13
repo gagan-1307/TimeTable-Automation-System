@@ -1,0 +1,93 @@
+/* Error Component Styles */
+
+.error {
+  color: var(--color-error);
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error-light);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  text-align: left;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  line-height: var(--line-height-relaxed);
+}
+
+.error::before {
+  content: '⚠';
+  font-size: 16px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.error strong {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-error);
+}
+
+/* Success message */
+.success {
+  color: var(--color-success);
+  background: var(--color-success-bg);
+  border: 1px solid var(--color-success-light);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  text-align: left;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  line-height: var(--line-height-relaxed);
+}
+
+.success::before {
+  content: '✓';
+  font-size: 16px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* Info message */
+.info {
+  color: var(--color-info);
+  background: var(--color-info-bg);
+  border: 1px solid var(--color-info-light);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  text-align: left;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  line-height: var(--line-height-relaxed);
+}
+
+.info::before {
+  content: 'ℹ';
+  font-size: 16px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* Warning message */
+.warning {
+  color: var(--color-warning);
+  background: var(--color-warning-bg);
+  border: 1px solid var(--color-warning-light);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  text-align: left;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  line-height: var(--line-height-relaxed);
+}
+
+.warning::before {
+  content: '⚠';
+  font-size: 16px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}

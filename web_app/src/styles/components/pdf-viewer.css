@@ -1,0 +1,140 @@
+/* PDF Viewer Component Styles */
+
+.pdfCard {
+  background: var(--color-white);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-3xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-xl);
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-height: calc(100vh - 160px);
+  position: relative;
+}
+
+.pdfCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-light), var(--color-primary-lighter));
+  opacity: 0.8;
+  z-index: 1;
+}
+
+.pdfCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-xl) var(--spacing-xl);
+  border-bottom: 1px solid var(--border-light);
+  background: linear-gradient(180deg, var(--bg-secondary), var(--color-white));
+  position: relative;
+  z-index: 1;
+}
+
+.pdfHeaderControls {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-lg);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.pdfHeaderButtons {
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.pdfMeta {
+  display: grid;
+  gap: 3px;
+  text-align: left;
+}
+
+.pdfTitle {
+  font-weight: var(--font-weight-extrabold);
+  color: var(--text-primary);
+  font-size: var(--font-size-md);
+}
+
+.pdfSubtitle {
+  color: var(--text-tertiary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.pdfHint {
+  color: var(--text-tertiary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  padding: 8px 12px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
+}
+
+.pdfViewer {
+  min-height: 0;
+  position: relative;
+  background: var(--bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pdfFrame {
+  width: 100%;
+  height: 100%;
+  min-height: 600px;
+  border: 0;
+  display: block;
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.05);
+  background: var(--color-white);
+}
+
+.pdfEmpty {
+  height: 100%;
+  min-height: 400px;
+  display: grid;
+  place-items: center;
+  color: var(--text-tertiary);
+  padding: var(--spacing-4xl) var(--spacing-3xl);
+  background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.2px;
+  text-align: center;
+}
+
+/* Edit Card (for timetable browser) */
+.editCard {
+  margin-top: var(--spacing-lg);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .pdfCardHeader {
+    padding: var(--spacing-lg);
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pdfHeaderControls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pdfHeaderButtons {
+    flex-direction: column;
+  }
+
+  .pdfFrame {
+    min-height: 400px;
+  }
+}

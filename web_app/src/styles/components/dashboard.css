@@ -1,0 +1,218 @@
+/* Dashboard Component Styles */
+
+.dashboard {
+  display: grid;
+  gap: var(--spacing-lg);
+  padding: 8px 2px 2px;
+}
+
+.dashboardHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--spacing-lg);
+  flex-wrap: wrap;
+  padding: var(--spacing-lg) var(--spacing-xl);
+  border-radius: var(--radius-2xl);
+  background: linear-gradient(135deg, #eef2ff, #f8fafc 55%, #eff6ff);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.dashboardHeader::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-light), var(--color-primary));
+}
+
+.dashboardTitle {
+  font-weight: var(--font-weight-black);
+  font-size: var(--font-size-2xl);
+  text-align: left;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.dashboardSubtitle {
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  text-align: left;
+  margin-top: var(--spacing-xs);
+  max-width: 520px;
+  line-height: var(--line-height-relaxed);
+}
+
+.dashboardHeaderActions {
+  display: flex;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.dashboardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+@media (max-width: 900px) {
+  .dashboardGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dashCard {
+  background: var(--color-white);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-2xl);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transition-base);
+}
+
+.dashCard::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-left: 4px solid var(--color-primary);
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+.dashCard::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--color-primary), transparent);
+  opacity: 0;
+  transition: opacity var(--transition-base);
+}
+
+.dashCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--border-medium);
+}
+
+.dashCard:hover::after {
+  opacity: 1;
+}
+
+.dashCardTitle {
+  font-weight: var(--font-weight-extrabold);
+  text-align: left;
+  margin-bottom: var(--spacing-md);
+  color: var(--text-primary);
+  font-size: var(--font-size-lg);
+}
+
+.profileGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-md) var(--spacing-lg);
+  background: var(--bg-secondary);
+  border: 1px dashed var(--border-medium);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-lg);
+}
+
+@media (max-width: 700px) {
+  .profileGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.profileField {
+  text-align: left;
+  display: grid;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  background: var(--color-white);
+  border: 1px solid var(--border-light);
+  box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.6);
+  transition: all var(--transition-base);
+}
+
+.profileField:hover {
+  box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.8), var(--shadow-xs);
+  transform: translateX(2px);
+}
+
+.profileLabel {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.profileValue {
+  font-size: var(--font-size-base);
+  color: var(--text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.dashActions {
+  display: grid;
+  gap: var(--spacing-md);
+  justify-items: start;
+}
+
+.dashHint {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  text-align: left;
+  line-height: var(--line-height-relaxed);
+}
+
+/* Page Shell */
+.pageShell {
+  display: grid;
+  gap: var(--spacing-lg);
+}
+
+.pageShellHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-lg);
+  flex-wrap: wrap;
+}
+
+.pageShellTitle {
+  font-weight: var(--font-weight-extrabold);
+  color: var(--text-primary);
+  font-size: var(--font-size-xl);
+}
+
+/* Responsive */
+@media (max-width: 720px) {
+  .dashboardHeader {
+    padding: var(--spacing-md) var(--spacing-lg);
+  }
+
+  .dashboardTitle {
+    font-size: var(--font-size-xl);
+  }
+
+  .dashCard {
+    padding: var(--spacing-lg);
+  }
+
+  .profileGrid {
+    padding: var(--spacing-md);
+    gap: var(--spacing-sm);
+  }
+}

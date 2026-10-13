@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="100%" height="100%">
+  <defs>
+    <linearGradient id="cap-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2563eb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e40af;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="tassel-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d97706;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Cap Board -->
+  <path d="M12 2L2 7l10 5 10-5-10-5z" fill="url(#cap-grad)" stroke="#1d4ed8" stroke-width="0.5" />
+  
+  <!-- Cap Skull Cap Underneath -->
+  <path d="M6 10v4c0 2 2 3.5 6 3.5s6-1.5 6-3.5v-4" fill="none" stroke="url(#cap-grad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M6 9.8v3.7c0 1.5 2.2 2.8 6 2.8s6-1.3 6-2.8V9.8L12 12.8 6 9.8z" fill="url(#cap-grad)" opacity="0.15" />
+  
+  <!-- Tassel / Ribbon -->
+  <path d="M18.5 7.5L19 14.5" stroke="url(#tassel-grad)" stroke-width="1.5" stroke-linecap="round" />
+  <circle cx="19" cy="15.5" r="1.5" fill="url(#tassel-grad)" />
+</svg>

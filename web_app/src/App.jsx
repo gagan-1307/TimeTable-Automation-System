@@ -1,14 +1,26 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import './App.css';
 import Footer from './components/common/Footer.jsx';
 import TimeTableGrid from './components/timetable/TimeTableGrid.jsx';
 import { useAuth } from './hooks/useAuth.js';
 import Dashboard from './pages/Dashboard.jsx';
 import TimetableEdit from './pages/TimetableEdit.jsx';
 import { TimetableProvider } from './context/TimetableContext.jsx';
+import {
+  GraduationCap,
+  Building2,
+  Calendar,
+  User,
+  Download,
+  LogIn,
+  LogOut,
+  FileText,
+  Filter,
+  Lock,
+  Upload
+} from 'lucide-react';
 
 // Vite-style env var (same base URL used elsewhere)
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://timetable-nitkkr.onrender.com';
 
 export default function App() {
   const { isAuthenticated, user, login, logout, checkSession, getAuthHeader } = useAuth();
@@ -264,6 +276,36 @@ export default function App() {
     }
   };
 
+  const onDownloadTeacherSchedulePdf = async () => {
+    const teacher = (selectedTeacher || '').trim();
+    if (!teacher) {
+      alert('Please select a teacher from the filter to download their schedule.');
+      return;
+    }
+    try {
+      const url = `${API_BASE_URL}/api/teachers/timetable/pdf?teacher=${encodeURIComponent(teacher)}`;
+      const res = await fetch(url, { method: 'GET' });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(errText || `Error ${res.status}`);
+      }
+
+      const blob = await res.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = `schedule_${teacher.replace(/[^a-zA-Z0-9\s.-]/g, '_').replace(/\s+/g, '_').slice(0, 40)}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error('Failed to download teacher schedule PDF', err);
+      alert(`Failed to download teacher schedule: ${err?.message || 'Unknown error'}`);
+    }
+  };
+
   const onLogout = () => {
     logout();
     setActivePage('viewer');
@@ -273,15 +315,24 @@ export default function App() {
     <TimetableProvider>
       <div className="app">
         <header className="appHeader">
-          <div className="appTitle">Timetable PDF Viewer</div>
+          <div className="appLogoTitle">
+            <GraduationCap className="appLogoIcon" size={32} />
+            <div className="appTitleContainer">
+              <span className="appTitleBrand">NIT KKR</span>
+              <span className="appTitleDivider">|</span>
+              <span className="appTitleText">Timetable Portal</span>
+            </div>
+          </div>
 
           <div className="appHeaderRight">
             {isAuthenticated ? (
               <div className="headerAuth">
                 <div className="headerAuthId" title={user?.email}>
+                  <User size={14} style={{ marginRight: 6, verticalAlign: 'middle', color: '#fbbf24' }} />
                   {user?.name} ({user?.role === 'institute_incharge' ? 'Institute' : user?.department})
                 </div>
                 <button className="btn" type="button" onClick={onLogout}>
+                  <LogOut size={16} />
                   Logout
                 </button>
               </div>
@@ -292,6 +343,7 @@ export default function App() {
                 onClick={onOpenLogin}
                 disabled={!canAdminLogin}
               >
+                <LogIn size={16} />
                 Admin Login
               </button>
             )}
@@ -327,7 +379,10 @@ export default function App() {
                 <div className="pdfHeaderControls">
                   <div className="filterRow" aria-label="Timetable filters">
                     <label className="filterField">
-                      <div className="filterLabel">Department</div>
+                      <div className="filterLabel">
+                        <Building2 size={13} style={{ color: '#a81f1f' }} />
+                        Department
+                      </div>
                       <select
                         className="select"
                         value={selectedDepartment}
@@ -343,7 +398,10 @@ export default function App() {
                     </label>
 
                     <label className="filterField">
-                      <div className="filterLabel">Room</div>
+                      <div className="filterLabel">
+                        <Calendar size={13} style={{ color: '#a81f1f' }} />
+                        Room
+                      </div>
                       <select
                         className="select"
                         value={selectedRoom}
@@ -359,7 +417,10 @@ export default function App() {
                     </label>
 
                     <label className="filterField">
-                      <div className="filterLabel">Teacher</div>
+                      <div className="filterLabel">
+                        <User size={13} style={{ color: '#a81f1f' }} />
+                        Teacher
+                      </div>
                       <select
                         className="select"
                         value={selectedTeacher}
@@ -376,8 +437,9 @@ export default function App() {
                   </div>
 
                   <div className="pdfHeaderButtons">
-                    {isAuthenticated ? (
+                    {isAuthenticated && (
                       <label className="btn btnGhost">
+                        <Upload size={16} />
                         Choose PDF
                         <input
                           className="visuallyHidden"
@@ -386,15 +448,24 @@ export default function App() {
                           onChange={onPickPdf}
                         />
                       </label>
-                    ) : (
-                      <div className="pdfHint">Login as admin to upload a PDF.</div>
                     )}
                     <button
                       className="btn btnPrimary"
                       type="button"
                       onClick={onDownloadAllTimetablesPdf}
                     >
-                      Download All Timetables (PDF)
+                      <Download size={16} />
+                      Download All (PDF)
+                    </button>
+                    <button
+                      className="btn btnGhost"
+                      type="button"
+                      onClick={onDownloadTeacherSchedulePdf}
+                      disabled={!selectedTeacher}
+                      title={selectedTeacher ? `Download timetable for ${selectedTeacher}` : 'Select a teacher first'}
+                    >
+                      <Download size={16} />
+                      Download Teacher (PDF)
                     </button>
                   </div>
                 </div>
@@ -438,7 +509,10 @@ export default function App() {
           <div className="modalOverlay" role="dialog" aria-modal="true" aria-label="Admin Login">
             <div className="modal">
               <div className="modalHeader">
-                <div className="modalTitle">Admin Login</div>
+                <div className="modalTitle" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <GraduationCap size={20} className="appLogoIcon" />
+                  Admin Login
+                </div>
                 <button className="iconBtn" type="button" onClick={onCloseLogin} aria-label="Close">
                   ×
                 </button>
@@ -446,7 +520,10 @@ export default function App() {
 
               <form className="modalBody" onSubmit={onSubmitLogin}>
                 <label className="field">
-                  <div className="fieldLabel">Admin ID</div>
+                  <div className="fieldLabel" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <User size={13} style={{ color: '#a81f1f' }} />
+                    Admin ID
+                  </div>
                   <input
                     className="input"
                     type="email"
@@ -458,7 +535,10 @@ export default function App() {
                 </label>
 
                 <label className="field">
-                  <div className="fieldLabel">Password</div>
+                  <div className="fieldLabel" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Lock size={13} style={{ color: '#a81f1f' }} />
+                    Password
+                  </div>
                   <input
                     className="input"
                     type="password"
@@ -475,6 +555,7 @@ export default function App() {
                     Cancel
                   </button>
                   <button className="btn btnPrimary" type="submit" disabled={isLoggingIn}>
+                    <LogIn size={16} />
                     {isLoggingIn ? 'Logging in…' : 'Login'}
                   </button>
                 </div>

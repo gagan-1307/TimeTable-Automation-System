@@ -1,0 +1,290 @@
+/* Timetable Component Styles */
+
+.editCard {
+  background: var(--color-white);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-2xl);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-lg);
+  display: grid;
+  gap: var(--spacing-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.editCard::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-top: 3px solid var(--color-primary);
+  opacity: 0.08;
+  pointer-events: none;
+}
+
+.editHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--spacing-lg);
+  flex-wrap: wrap;
+  margin-bottom: var(--spacing-lg);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  border-radius: var(--radius-2xl);
+  background: linear-gradient(135deg, #ecfeff, #f8fafc 55%, #eef2ff);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.editHeader::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-info), var(--color-primary), var(--color-info));
+}
+
+.editTitle {
+  font-weight: var(--font-weight-black);
+  font-size: var(--font-size-xl);
+  text-align: left;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.editSubtitle {
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  text-align: left;
+  margin-top: var(--spacing-xs);
+  max-width: 620px;
+  line-height: var(--line-height-relaxed);
+}
+
+.editFormRow {
+  display: flex;
+  gap: var(--spacing-lg);
+  align-items: flex-end;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.editFormRow .field {
+  min-width: 240px;
+  flex: 1;
+}
+
+.previewBlock {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.previewHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--spacing-lg);
+  flex-wrap: wrap;
+}
+
+.previewMeta {
+  display: grid;
+  gap: var(--spacing-xs);
+  text-align: left;
+}
+
+.previewTitle {
+  font-weight: var(--font-weight-black);
+  text-align: left;
+  color: var(--text-primary);
+  font-size: var(--font-size-lg);
+}
+
+.previewSubtitle {
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  text-align: left;
+  margin-top: 3px;
+  line-height: var(--line-height-relaxed);
+}
+
+.previewActions {
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: center;
+}
+
+.tableWrap {
+  width: 100%;
+  overflow: auto;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.7), var(--shadow-sm);
+  background: var(--color-white);
+}
+
+.ttTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-white);
+  min-width: 800px;
+}
+
+.ttTable th,
+.ttTable td {
+  border: 1px solid var(--border-medium);
+  padding: 12px 10px;
+  text-align: left;
+  vertical-align: top;
+  font-size: var(--font-size-sm);
+  transition: background-color var(--transition-fast);
+}
+
+.ttTable thead th {
+  position: sticky;
+  top: 0;
+  background: linear-gradient(180deg, var(--color-primary), var(--color-primary-dark));
+  color: var(--color-white);
+  z-index: 1;
+  font-weight: var(--font-weight-black);
+  text-align: center;
+  letter-spacing: 0.3px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.ttDayHeader {
+  background: var(--color-primary-dark) !important;
+  color: var(--color-white) !important;
+  font-weight: var(--font-weight-black) !important;
+  border-right: 2px solid var(--color-primary) !important;
+}
+
+.ttLectureHeader {
+  background: var(--color-primary) !important;
+  color: var(--color-white) !important;
+  font-weight: var(--font-weight-black) !important;
+}
+
+.ttDayCell {
+  background: var(--color-primary-bg);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--text-primary);
+  text-align: center;
+  border-right: 2px solid var(--color-primary-lighter);
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
+}
+
+.ttTable tbody tr:nth-child(even) {
+  background-color: var(--bg-secondary);
+}
+
+.ttTable tbody tr:nth-child(odd) {
+  background-color: var(--color-white);
+}
+
+.ttTable tbody tr:hover {
+  background-color: var(--color-primary-bg);
+}
+
+.ttTable tbody td {
+  text-align: left;
+  min-width: 120px;
+  word-break: break-word;
+}
+
+/* Timetable cell editability */
+.ttCellEditable {
+  cursor: pointer;
+  background: var(--color-primary-bg);
+  position: relative;
+}
+
+.ttCellEditable::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  transition: all var(--transition-fast);
+}
+
+.ttCellEditable:hover {
+  background: var(--color-primary-lightest);
+  box-shadow: inset 0 0 0 1px rgba(168, 31, 31, 0.35);
+}
+
+.ttCellEditable:hover::before {
+  border-color: var(--color-primary);
+}
+
+.ttCellLocked {
+  cursor: not-allowed;
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+.ttCellLocked:hover {
+  background: var(--bg-secondary);
+}
+
+/* Saved List */
+.savedList {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.savedItem {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-lg);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--color-white);
+  transition: all var(--transition-base);
+}
+
+.savedItem:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-medium);
+  transform: translateX(2px);
+}
+
+.savedRoom {
+  font-weight: var(--font-weight-extrabold);
+  color: var(--text-primary);
+}
+
+.savedMeta {
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* Responsive */
+@media (max-width: 720px) {
+  .editHeader {
+    padding: var(--spacing-md) var(--spacing-lg);
+  }
+
+  .editCard {
+    padding: var(--spacing-lg);
+  }
+
+  .ttTable th,
+  .ttTable td {
+    font-size: var(--font-size-xs);
+    padding: 10px 8px;
+  }
+
+  .tableWrap {
+    border-radius: var(--radius-lg);
+  }
+}

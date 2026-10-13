@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { Calendar } from 'lucide-react';
 
 const DAY_ORDER = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
 const LECTURE_NOS = Array.from({ length: 10 }, (_, i) => String(i + 1));
@@ -51,7 +52,10 @@ const TimeTableGrid = ({
         const timetable = timetableByRoom[roomId] || {};
         return (
           <div key={roomId} className="previewBlock">
-            <div className="previewTitle">Room: {roomId}</div>
+            <div className="previewTitle" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Calendar size={18} style={{ color: '#a81f1f' }} />
+              Room: {roomId}
+            </div>
             <div className="tableWrap">
               <table className="ttTable">
                 <thead>

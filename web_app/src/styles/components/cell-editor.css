@@ -1,0 +1,54 @@
+/* Cell Editor Component Styles - Additional styles beyond modal.css */
+
+.cellEditorForm .formGrid {
+  display: grid;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+}
+
+.cellEditorForm .field {
+  position: relative;
+}
+
+.cellEditorForm .field:focus-within .fieldLabel {
+  color: var(--color-primary-dark);
+}
+
+.cellEditorForm .input:disabled {
+  background: var(--bg-secondary);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.cellEditorForm .fieldHint {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  margin-top: 4px;
+  font-weight: var(--font-weight-normal);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.cellEditorForm .fieldHint::before {
+  content: 'ℹ';
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+/* Error message in cell editor */
+.cellEditorContent .error {
+  margin: var(--spacing-md) var(--spacing-lg);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error-light);
+  border-radius: var(--radius-md);
+  color: var(--color-error);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+}
+
+.cellEditorContent .error strong {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-error);
+}

@@ -1,8 +1,9 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { parseTimetableExcel } from '../utils/excelTimetable.js';
 import CellEditor from '../components/timetable/CellEditor.jsx';
+import { Upload, Save, Download } from 'lucide-react';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://timetable-nitkkr.onrender.com';
 const DAY_ORDER = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
 const LECTURE_NOS = Array.from({ length: 10 }, (_, i) => String(i + 1));
 
@@ -261,6 +262,7 @@ const TimetableEdit = ({ getAuthHeader, user: propUser }) => {
 
           {canBulkUpload && (
             <label className="btn btnGhost">
+              <Upload size={16} />
               {isParsing ? 'Parsing…' : 'Upload Excel (allocate departments)'}
               <input
                 className="visuallyHidden"
@@ -284,6 +286,7 @@ const TimetableEdit = ({ getAuthHeader, user: propUser }) => {
               </div>
               <div className="previewActions">
                 <button className="btn btnPrimary" type="button" onClick={onBulkSave}>
+                  <Save size={16} />
                   Save allocations to room
                 </button>
               </div>
@@ -302,6 +305,7 @@ const TimetableEdit = ({ getAuthHeader, user: propUser }) => {
               </div>
             </div>
             <button className="btn btnGhost" type="button" onClick={onDownloadPdf}>
+              <Download size={16} />
               Download PDF
             </button>
           </div>
