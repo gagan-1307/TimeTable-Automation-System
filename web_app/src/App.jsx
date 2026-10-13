@@ -530,7 +530,7 @@ export default function App() {
                     value={loginId}
                     onChange={(e) => setLoginId(e.target.value)}
                     autoFocus
-                    placeholder="123103054@nitkkr.ac.in"
+                    placeholder="admin@nitkkr.ac.in"
                   />
                 </label>
 
@@ -544,7 +544,7 @@ export default function App() {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="9499276265"
+                    placeholder="admin@123"
                   />
                 </label>
 

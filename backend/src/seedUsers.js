@@ -7,10 +7,13 @@
  * - Department incharges for CSE, ECE, EEE, MECH, CIVIL (can only edit cells allocated to their dept)
  */
 const mongoose = require('mongoose');
+require('dotenv').config();
 
-const MONGO_URI =
-  process.env.MONGO_URI ||
-  'mongodb+srv://nishant3054_db_user:KkW6HP40cWhe6E5v@cluster0.rxiurt8.mongodb.net/?appName=Cluster0';
+const MONGO_URI = process.env.MONGO_URI;
+if (!MONGO_URI) {
+  console.error('Error: MONGO_URI environment variable is not set. Aborting seed.');
+  process.exit(1);
+}
 
 const userSchema = new mongoose.Schema(
   {
@@ -30,13 +33,13 @@ const userSchema = new mongoose.Schema(
 const User = mongoose.model('User', userSchema);
 
 const defaultUsers = [
-  // {
-  //   email: 'institute@nitkkr.ac.in',
-  //   password: 'institute123',
-  //   name: 'Institute Timetable Incharge',
-  //   role: 'institute_incharge',
-  //   department: null,
-  // },
+  {
+    email: 'admin@nitkkr.ac.in',
+    password: 'admin@123',
+    name: 'Institute Timetable Incharge',
+    role: 'institute_incharge',
+    department: null,
+  },
   { email: 'it@nitkkr.ac.in', password: 'it123', name: 'IT Dept Incharge', role: 'dept_incharge', department: 'IT' },
   // { email: 'ece@nitkkr.ac.in', password: 'ece123', name: 'ECE Dept Incharge', role: 'dept_incharge', department: 'ECE' },
   // { email: 'eee@nitkkr.ac.in', password: 'eee123', name: 'EEE Dept Incharge', role: 'dept_incharge', department: 'EEE' },
