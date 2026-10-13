@@ -46,18 +46,6 @@ const Dashboard = ({ adminProfile, onEditTimetable, onBackToViewer }) => {
             </div>
           </div>
         </div>
-
-        <div className="dashCard">
-          <div className="dashCardTitle">Actions</div>
-          <div className="dashActions">
-            <button className="btn btnPrimary" type="button" onClick={onEditTimetable}>
-              Edit Timetable
-            </button>
-            <div className="dashHint">
-              You can update classes, rooms, and subjects from the edit screen.
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

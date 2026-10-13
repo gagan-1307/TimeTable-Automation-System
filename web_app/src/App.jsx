@@ -1,54 +1,83 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import './App.css';
 import Footer from './components/common/Footer.jsx';
+import TimeTableGrid from './components/timetable/TimeTableGrid.jsx';
 import { useAuth } from './hooks/useAuth.js';
 import Dashboard from './pages/Dashboard.jsx';
 import TimetableEdit from './pages/TimetableEdit.jsx';
 import { TimetableProvider } from './context/TimetableContext.jsx';
 
+// Vite-style env var (same base URL used elsewhere)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
 export default function App() {
-  const { isAuthenticated, adminId, login, logout } = useAuth();
+  const { isAuthenticated, user, login, logout, checkSession, getAuthHeader } = useAuth();
 
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const [pdfObjectUrl, setPdfObjectUrl] = useState('');
   const [pdfFileName, setPdfFileName] = useState('');
 
   const [activePage, setActivePage] = useState('viewer'); // 'viewer' | 'dashboard' | 'edit'
 
-  const [selectedBranch, setSelectedBranch] = useState('');
+  const [selectedDepartment, setSelectedDepartment] = useState('');
   const [selectedRoom, setSelectedRoom] = useState('');
-  const [selectedSubject, setSelectedSubject] = useState('');
+  const [selectedTeacher, setSelectedTeacher] = useState('');
 
-  // NOTE: These can be replaced with real data from src/data/* when available.
-  const branchOptions = useMemo(
-    () => ['CSE', 'ECE', 'EEE', 'MECH', 'CIVIL'],
-    []
-  );
-  const roomOptions = useMemo(
-    () => ['Room 101', 'Room 102', 'Lab 1', 'Lab 2', 'Seminar Hall'],
-    []
-  );
-  const subjectOptions = useMemo(
-    () => ['Mathematics', 'Data Structures', 'DBMS', 'Operating Systems', 'Networks'],
-    []
-  );
+  const [timetableByRoom, setTimetableByRoom] = useState({});
+  const [isTimetableLoading, setIsTimetableLoading] = useState(false);
+  const [timetableError, setTimetableError] = useState('');
+
+  const roomOptions = useMemo(() => {
+    return Object.keys(timetableByRoom || {}).sort();
+  }, [timetableByRoom]);
+
+  const departmentOptions = useMemo(() => {
+    const deptSet = new Set();
+    Object.values(timetableByRoom || {}).forEach((roomTimetable) => {
+      Object.values(roomTimetable || {}).forEach((dayEntries) => {
+        Object.values(dayEntries || {}).forEach((entry) => {
+          const dept = entry?.allocatedDept ? String(entry.allocatedDept).trim() : '';
+          if (dept) deptSet.add(dept);
+        });
+      });
+    });
+    return Array.from(deptSet).sort();
+  }, [timetableByRoom]);
+
+  const teacherOptions = useMemo(() => {
+    const teacherSet = new Set();
+    Object.values(timetableByRoom || {}).forEach((roomTimetable) => {
+      Object.values(roomTimetable || {}).forEach((dayEntries) => {
+        Object.values(dayEntries || {}).forEach((entry) => {
+          const teacher = entry?.teacher ? String(entry.teacher).trim() : '';
+          if (teacher) teacherSet.add(teacher);
+        });
+      });
+    });
+    return Array.from(teacherSet).sort();
+  }, [timetableByRoom]);
 
   const canAdminLogin = true;
   const adminProfile = useMemo(() => {
-    // NOTE: sample values for now — replace with real admin profile data later.
-    if (!adminId) return null;
+    if (!user) return null;
+    const isInstitute = user.role === 'institute_incharge';
     return {
-      id: adminId,
-      name: 'Admin User',
-      post: 'Timetable In-charge',
-      role: 'Administrator',
-      department: 'CSE',
+      id: user.email,
+      name: user.name,
+      post: isInstitute ? 'Institute Timetable In-charge' : 'Department Timetable In-charge',
+      role: isInstitute ? 'Institute Incharge' : 'Department Incharge',
+      department: user.department || '-',
     };
-  }, [adminId]);
+  }, [user]);
+
+  useEffect(() => {
+    checkSession();
+  }, []);
 
   const onPickPdf = (e) => {
     const file = e.target.files?.[0];
@@ -80,20 +109,160 @@ export default function App() {
     setLoginError('');
   };
 
-  const onSubmitLogin = (e) => {
+  const onSubmitLogin = async (e) => {
     e.preventDefault();
-    const ok = login(loginId.trim(), password);
-    if (ok) {
+    setLoginError('');
+    setIsLoggingIn(true);
+    try {
+      await login(loginId.trim(), password);
       setActivePage('dashboard');
       onCloseLogin();
-      return;
+    } catch (err) {
+      setLoginError(err?.message || 'Invalid email or password.');
+    } finally {
+      setIsLoggingIn(false);
     }
-    setLoginError('Invalid Admin ID or Password.');
   };
 
   const viewerSrc = useMemo(() => {
     return pdfObjectUrl || '';
   }, [pdfObjectUrl]);
+
+  // Automatically load the generated timetable PDF from the backend
+  useEffect(() => {
+    // Only try to load when on the viewer page
+    if (activePage !== 'viewer') return;
+
+    let cancelled = false;
+
+    const loadTimetablePdf = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/rooms/timetable/pdf`, {
+          method: 'GET',
+        });
+
+        if (!res.ok) {
+          // Quietly ignore 404 (no data yet), log other errors
+          if (res.status !== 404) {
+            const errText = await res.text();
+            console.error('Failed to auto-load timetable PDF:', errText);
+          }
+          return;
+        }
+
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        if (cancelled) {
+          window.URL.revokeObjectURL(url);
+          return;
+        }
+
+        setPdfFileName('Timetable (all rooms)');
+        setPdfObjectUrl((prev) => {
+          if (prev) window.URL.revokeObjectURL(prev);
+          return url;
+        });
+      } catch (err) {
+        console.error('Error auto-loading timetable PDF', err);
+      }
+    };
+
+    loadTimetablePdf();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activePage]);
+
+  useEffect(() => {
+    if (activePage !== 'viewer') return;
+
+    let cancelled = false;
+    const loadTimetables = async () => {
+      setIsTimetableLoading(true);
+      setTimetableError('');
+      try {
+        const roomsRes = await fetch(`${API_BASE_URL}/api/rooms`, { method: 'GET' });
+        if (!roomsRes.ok) {
+          const errText = await roomsRes.text();
+          throw new Error(errText || `Error ${roomsRes.status}`);
+        }
+
+        const roomsData = await roomsRes.json();
+        const roomIds = (roomsData.rooms || []).filter(Boolean);
+
+        if (!roomIds.length) {
+          if (!cancelled) setTimetableByRoom({});
+          return;
+        }
+
+        const results = await Promise.all(
+          roomIds.map(async (roomId) => {
+            try {
+              const res = await fetch(
+                `${API_BASE_URL}/api/rooms/${encodeURIComponent(roomId)}/timetable`,
+                { method: 'GET' }
+              );
+              if (!res.ok) return [roomId, {}];
+              const data = await res.json();
+              return [roomId, data.timetable || {}];
+            } catch (err) {
+              console.error('Failed to fetch timetable for room', roomId, err);
+              return [roomId, {}];
+            }
+          })
+        );
+
+        if (!cancelled) {
+          const nextMap = {};
+          results.forEach(([roomId, timetable]) => {
+            nextMap[roomId] = timetable || {};
+          });
+          setTimetableByRoom(nextMap);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setTimetableError(err?.message || 'Failed to load timetables.');
+        }
+      } finally {
+        if (!cancelled) setIsTimetableLoading(false);
+      }
+    };
+
+    loadTimetables();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activePage]);
+
+  const onDownloadAllTimetablesPdf = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/rooms/timetable/pdf`, {
+        method: 'GET',
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Backend error (${res.status}): ${errText}`);
+      }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'timetable_all_rooms.pdf';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Failed to download all timetables PDF', err);
+      alert(
+        `Failed to download all timetables PDF: ${err?.message || 'Unknown error'}`
+      );
+    }
+  };
 
   const onLogout = () => {
     logout();
@@ -109,8 +278,8 @@ export default function App() {
           <div className="appHeaderRight">
             {isAuthenticated ? (
               <div className="headerAuth">
-                <div className="headerAuthId" title={adminId}>
-                  {adminId}
+                <div className="headerAuthId" title={user?.email}>
+                  {user?.name} ({user?.role === 'institute_incharge' ? 'Institute' : user?.department})
                 </div>
                 <button className="btn" type="button" onClick={onLogout}>
                   Logout
@@ -138,7 +307,7 @@ export default function App() {
                 </button>
                 <div className="pageShellTitle">Edit Timetable</div>
               </div>
-              <TimetableEdit />
+              <TimetableEdit getAuthHeader={getAuthHeader} user={user} />
             </div>
           ) : activePage === 'dashboard' && isAuthenticated ? (
             <Dashboard
@@ -147,7 +316,8 @@ export default function App() {
               onBackToViewer={() => setActivePage('viewer')}
             />
           ) : (
-            <div className="pdfCard">
+            <>
+              <div className="pdfCard">
               <div className="pdfCardHeader">
                 <div className="pdfMeta">
                   <div className="pdfTitle">Displayed PDF</div>
@@ -155,18 +325,18 @@ export default function App() {
                 </div>
 
                 <div className="pdfHeaderControls">
-                  <div className="filterRow" aria-label="Filters">
+                  <div className="filterRow" aria-label="Timetable filters">
                     <label className="filterField">
-                      <div className="filterLabel">Branch</div>
+                      <div className="filterLabel">Department</div>
                       <select
                         className="select"
-                        value={selectedBranch}
-                        onChange={(e) => setSelectedBranch(e.target.value)}
+                        value={selectedDepartment}
+                        onChange={(e) => setSelectedDepartment(e.target.value)}
                       >
                         <option value="">All</option>
-                        {branchOptions.map((b) => (
-                          <option key={b} value={b}>
-                            {b}
+                        {departmentOptions.map((dept) => (
+                          <option key={dept} value={dept}>
+                            {dept}
                           </option>
                         ))}
                       </select>
@@ -180,44 +350,53 @@ export default function App() {
                         onChange={(e) => setSelectedRoom(e.target.value)}
                       >
                         <option value="">All</option>
-                        {roomOptions.map((r) => (
-                          <option key={r} value={r}>
-                            {r}
+                        {roomOptions.map((room) => (
+                          <option key={room} value={room}>
+                            {room}
                           </option>
                         ))}
                       </select>
                     </label>
 
                     <label className="filterField">
-                      <div className="filterLabel">Subject</div>
+                      <div className="filterLabel">Teacher</div>
                       <select
                         className="select"
-                        value={selectedSubject}
-                        onChange={(e) => setSelectedSubject(e.target.value)}
+                        value={selectedTeacher}
+                        onChange={(e) => setSelectedTeacher(e.target.value)}
                       >
                         <option value="">All</option>
-                        {subjectOptions.map((s) => (
-                          <option key={s} value={s}>
-                            {s}
+                        {teacherOptions.map((teacher) => (
+                          <option key={teacher} value={teacher}>
+                            {teacher}
                           </option>
                         ))}
                       </select>
                     </label>
                   </div>
 
-                  {isAuthenticated ? (
-                    <label className="btn btnGhost">
-                      Choose PDF
-                      <input
-                        className="visuallyHidden"
-                        type="file"
-                        accept="application/pdf"
-                        onChange={onPickPdf}
-                      />
-                    </label>
-                  ) : (
-                    <div className="pdfHint">Login as admin to upload a PDF.</div>
-                  )}
+                  <div className="pdfHeaderButtons">
+                    {isAuthenticated ? (
+                      <label className="btn btnGhost">
+                        Choose PDF
+                        <input
+                          className="visuallyHidden"
+                          type="file"
+                          accept="application/pdf"
+                          onChange={onPickPdf}
+                        />
+                      </label>
+                    ) : (
+                      <div className="pdfHint">Login as admin to upload a PDF.</div>
+                    )}
+                    <button
+                      className="btn btnPrimary"
+                      type="button"
+                      onClick={onDownloadAllTimetablesPdf}
+                    >
+                      Download All Timetables (PDF)
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -228,7 +407,28 @@ export default function App() {
                   <div className="pdfEmpty">Select a PDF (admin) to display it here.</div>
                 )}
               </div>
-            </div>
+              </div>
+
+              <div className="editCard" style={{ marginTop: 16 }}>
+              <div className="previewHeader">
+                <div className="previewMeta">
+                  <div className="previewTitle">Timetable Browser</div>
+                  <div className="previewSubtitle">
+                    Filter by department, room, or teacher. Non-matching entries are hidden.
+                  </div>
+                </div>
+              </div>
+
+              <TimeTableGrid
+                timetableByRoom={timetableByRoom}
+                selectedRoom={selectedRoom}
+                selectedDepartment={selectedDepartment}
+                selectedTeacher={selectedTeacher}
+                loading={isTimetableLoading}
+                error={timetableError}
+              />
+              </div>
+            </>
           )}
         </main>
 
@@ -271,11 +471,11 @@ export default function App() {
                 {loginError ? <div className="error">{loginError}</div> : null}
 
                 <div className="modalActions">
-                  <button className="btn" type="button" onClick={onCloseLogin}>
+                  <button className="btn" type="button" onClick={onCloseLogin} disabled={isLoggingIn}>
                     Cancel
                   </button>
-                  <button className="btn btnPrimary" type="submit">
-                    Login
+                  <button className="btn btnPrimary" type="submit" disabled={isLoggingIn}>
+                    {isLoggingIn ? 'Logging in…' : 'Login'}
                   </button>
                 </div>
               </form>
