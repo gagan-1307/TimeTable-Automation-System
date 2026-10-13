@@ -1,7 +1,29 @@
 {
-  "buildCommand": "npm run build",
-  "installCommand": "npm install",
-  "outputDirectory": "web_app/dist",
-  "framework": "vite",
-  "rootDirectory": "web_app"
+  "version": 2,
+  "builds": [
+    {
+      "src": "web_app/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    },
+    {
+      "src": "api/index.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/index.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/web_app/$1"
+    }
+  ],
+  "env": {
+    "MONGO_URI": "@mongo_uri"
+  }
 }

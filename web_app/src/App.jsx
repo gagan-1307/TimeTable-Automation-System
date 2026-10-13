@@ -19,8 +19,9 @@ import {
   Upload
 } from 'lucide-react';
 
-// Vite-style env var (same base URL used elsewhere)
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://timetable-nitkkr.onrender.com';
+// On Vercel: frontend + backend share the same domain → use relative paths (empty string).
+// Local dev: set VITE_API_BASE_URL=http://localhost:5000 in web_app/.env
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 export default function App() {
   const { isAuthenticated, user, login, logout, checkSession, getAuthHeader } = useAuth();

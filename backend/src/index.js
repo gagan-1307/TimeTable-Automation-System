@@ -701,22 +701,43 @@ app.get('/api/rooms/:roomId/timetable/pdf', async (req, res) => {
   }
 });
 
-// Connect to MongoDB, then start server
-mongoose
-  .connect(process.env.MONGO_URI, {
-    serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
-    socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
-  })
-  .then(() => {
-    console.log('Connected to MongoDB');
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(`Server running on port ${PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.error('Failed to connect to MongoDB', err);
-    process.exit(1);
+// ─── MongoDB connection (lazy-cached for serverless) ─────────────────────────
+let isConnected = false;
+
+async function connectDB() {
+  if (isConnected) return;
+  await mongoose.connect(process.env.MONGO_URI, {
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
   });
+  isConnected = true;
+  console.log('Connected to MongoDB');
+}
 
+// Middleware to ensure DB is connected before handling requests
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error('MongoDB connection failed', err);
+    res.status(503).json({ message: 'Database unavailable.' });
+  }
+});
 
+// ─── Export for Vercel serverless ────────────────────────────────────────────
+module.exports = app;
 
+// ─── Local dev: start HTTP server directly ───────────────────────────────────
+if (require.main === module) {
+  connectDB()
+    .then(() => {
+      app.listen(PORT, '0.0.0.0', () => {
+        console.log(`Server running on port ${PORT}`);
+      });
+    })
+    .catch((err) => {
+      console.error('Failed to connect to MongoDB', err);
+      process.exit(1);
+    });
+}
